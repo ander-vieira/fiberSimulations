@@ -12,8 +12,8 @@ rng('shuffle');
 
 minlambda = 500e-9;
 dlambda = 1e-9;
-maxlambda = 740e-9;
-da = 1e-5;
+maxlambda = 750e-9;
+da = 1e-6;
 
 [~, sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dopant);
 
