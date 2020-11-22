@@ -6,7 +6,7 @@ function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL)
 
 tic;
 
-M = 30000; % Number of photons to simulate
+M = 50000; % Number of photons to simulate
 
 rng('shuffle');
 
@@ -14,6 +14,9 @@ minlambda = 500e-9;
 dlambda = 1e-9;
 maxlambda = 750e-9;
 da = 1e-6;
+
+incidenceAngle = deg2rad(-0);
+rotationMatrix = [1 0 0 ; 0 cos(incidenceAngle) -sin(incidenceAngle) ; 0 sin(incidenceAngle) cos(incidenceAngle)]';
 
 [~, sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dopant);
 
@@ -45,9 +48,9 @@ for i = 1:M
     photonPower = incomingPower/M;
     
     % Get initial position of photon (directly above fiber, random)
-    % and direction (always downward)
-    position(2, :) = [diameter*(rand()-1/2) 1.1*diameter lightL*rand()];
-    direction = [0 -1 0];
+    % and direction (rotated using incidence angle)
+    direction = [0 -1 0]*rotationMatrix;
+    position(2, :) = [diameter*(rand()-1/2) 0 lightL*rand()]+[0 0.55*diameter/rotationMatrix(2, 2) 0]*rotationMatrix;
     
     incoming = true;
     loopOn = true;
@@ -76,7 +79,7 @@ for i = 1:M
             incoming = false;
             
             % Get normal vector of fiber surface
-            normalVector = position(1, :);
+            normalVector = position(1, :)+position(2, :);
             normalVector(3) = 0;
             normalVector = normalVector/vecnorm(normalVector);
             
@@ -99,7 +102,21 @@ for i = 1:M
                 % Regular refraction
                 
                 % Get new direction after refraction
-                direction = newProjectedVector + sign(direction*normalVector')*sqrt(1 - vecnorm(newProjectedVector)^2)*normalVector;
+                newDirection = newProjectedVector + sign(direction*normalVector')*sqrt(1 - vecnorm(newProjectedVector)^2)*normalVector;
+
+                % Calculate Fresnel coefficients
+                cosI = direction*normalVector';
+                cosT = newDirection*normalVector';
+                fresnelR = (((prevN*cosI-n*cosT)/(prevN*cosI+n*cosT))^2+((prevN*cosT-n*cosI)/(prevN*cosT+n*cosI))^2)/2;
+                fresnelT = 1-fresnelR;
+                
+                % Refracted power kept in current photon
+                photonPower = photonPower*fresnelT;
+                
+                % TODO: generate new photon with reflected part of power
+                
+                % Actually change the direction
+                direction = newDirection;
             end
         end
         
@@ -147,7 +164,9 @@ for i = 1:M
         end
     end
     
-    fprintf('\b\b\b\b\b\b%06d', i);
+    if mod(i, 100) == 0
+        fprintf('\b\b\b\b\b\b%06d', i);
+    end
 end
 fprintf('\n');
 
