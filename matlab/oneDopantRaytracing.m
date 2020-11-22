@@ -32,7 +32,7 @@ emittedDistribution = emittedDistribution/sum(emittedDistribution);
 
 % Initial values
 position = zeros(2, 3);
-incomingPower = solarConstant*diameter*lightL; % W
+incomingPower = solarConstant*diameter*lightL*cos(incidenceAngle); % W
 finalPower = 0; % W
 finalPhotons = 0;
 runawayPhotons = 0;
