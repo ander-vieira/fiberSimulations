@@ -1,4 +1,4 @@
-function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL)
+function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, incidenceAngleDegrees)
 %ONEDOPANTRAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
@@ -6,7 +6,7 @@ function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL)
 
 tic;
 
-M = 50000; % Number of photons to simulate
+M = 200000; % Number of photons to simulate
 
 rng('shuffle');
 
@@ -15,7 +15,7 @@ dlambda = 1e-9;
 maxlambda = 750e-9;
 da = 1e-6;
 
-incidenceAngle = deg2rad(-0);
+incidenceAngle = deg2rad(incidenceAngleDegrees);
 rotationMatrix = [1 0 0 ; 0 cos(incidenceAngle) -sin(incidenceAngle) ; 0 sin(incidenceAngle) cos(incidenceAngle)]';
 
 [~, sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dopant);
@@ -39,7 +39,9 @@ runawayPhotons = 0;
 PMMAPhotons = 0;
 absorptions = 0;
 
-fprintf('i = 000000');
+if nargout == 0
+    fprintf('i = 000000');
+end
 for i = 1:M
     % Generate random photon from incident sunlight
     lambda = generateDistributedLambda(ll, solarDistribution);
@@ -97,7 +99,7 @@ for i = 1:M
                 
                 % Keep inside the fiber so photon doesn't disappear
                 position(2, :) = position(1, :);
-                inFiber = true;
+                inFiber = ~inFiber;
             else
                 % Regular refraction
                 
@@ -118,6 +120,11 @@ for i = 1:M
                 % Actually change the direction
                 direction = newDirection;
             end
+        end
+        
+        % Photon left bounds of simulation (removed for performance)
+        if(abs(position(2, 1)) > diameter  || abs(position(2, 2)) > diameter)
+            loopOn = false;
         end
         
         % Photon may be absorbed by PMMA (and lost)
@@ -146,29 +153,34 @@ for i = 1:M
         end
         
         % Photon leaves the fiber (and is lost)
-        if(~incoming && ~inFiber)
-            loopOn = false;
-            runawayPhotons = runawayPhotons + 1;
-        end
-        
-        % Photon reaches left end of fiber (and is lost)
-        if(position(2, 3) < 0)
-            loopOn = false;
+        if(~inFiber)
+            normalVector = [position(2, 1) ; position(2, 2) ; 0];
+            if(direction*normalVector > 0)
+                loopOn = false;
+                runawayPhotons = runawayPhotons + 1;
+            end
         end
         
         % Photon reaches right end of fiber (and is concentrated)
-        if(loopOn && position(2, 3) > lightL+darkL)
+        if(loopOn && inFiber && position(2, 3) >= lightL + darkL && position(1, 3) < lightL + darkL)
             finalPower = finalPower + photonPower;
             finalPhotons = finalPhotons + 1;
             loopOn = false;
         end
+        
+        % Photon reaches ends of fiber but isn't concentrated (and is lost)
+        if(~incoming && (position(2, 3) < 0 || position(2, 3) >= lightL + darkL))
+            loopOn = false;
+        end
     end
     
-    if mod(i, 100) == 0
+    if nargout == 0 && mod(i, 100) == 0
         fprintf('\b\b\b\b\b\b%06d', i);
     end
 end
-fprintf('\n');
+if nargout == 0
+    fprintf('\n');
+end
 
 if nargout == 0
     fprintf('Simulation time: %.1f s\n', toc());
