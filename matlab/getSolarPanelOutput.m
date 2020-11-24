@@ -18,7 +18,7 @@ Psilicon_out = solarConstant*panelArea*0.169; % W
 Ptriple_out = solarConstant*panelArea*0.33; % W
 
 diameter = 0.1e-3; % m
-concDensity = 1.5*diameter*1.18e3; % kg/m^2, for thickness=diameter, +20% for other components
+concDensity = 1.5*diameter*1.18e3; % kg/m^2, for thickness=diameter, +50% for other components
 concArea = weight / concDensity; % m^2
 L = 0.2; % m
 W = concArea / L; % m

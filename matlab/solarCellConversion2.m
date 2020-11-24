@@ -1,6 +1,11 @@
 function [electricPout] = solarCellConversion2(ll, lightPin, diodeSurface)
+%SOLARCELLCONVERSION Obtain electrical power from incoming optical power
+%    Uses the entire spectrum of light to apply responsivity
+%    Then uses a two-diode model to get V and I
+%    And uses numerical minmax algorithm (Newton-Raphson) to get P
 
 if nargin == 0
+    % Use direct sunlight and 1mm circular cell to calculate
     dlambda = 2e-9;
     minlambda = 300e-9;
     maxlambda = 1100e-9;
@@ -16,13 +21,14 @@ end
 kB = 1.3806e-23; % Boltzmann constant (J/K)
 electronCharge = 1.6e-19; % C
 
-Isat1 = 1e-8*diodeSurface;
-Isat2 = .5e-3*diodeSurface;
+Isat1 = 1e-8*diodeSurface; % A
+Isat2 = .5e-3*diodeSurface; % A
 Tamb = 300; % Ambient temperature (K)
-thermalVoltage = kB*Tamb/electronCharge;
+thermalVoltage = kB*Tamb/electronCharge; % V
 
 responsivity = photodiodeResponsivity(ll);
 
+% Get Iph from the incoming sunlight
 diodeCurrent = sum(lightPin .* responsivity);
 
 % a and b are defined to simplify the equation to solve
@@ -43,9 +49,11 @@ while 1
     end
 end
 
-Vmax = 2*thermalVoltage*a;
-Imax = diodeCurrent - Isat1*(exp(2*a)-1) - Isat2*(exp(a));
-electricPout = Vmax*Imax;
+% a = V/V_T/2
+Vmax = 2*thermalVoltage*a; % V
+Imax = diodeCurrent - Isat1*(exp(2*a)-1) - Isat2*(exp(a)); % A
+electricPout = Vmax*Imax; % W
+% Coupled resistance for maximum power: Vmax/Imax (ohm)
 
 end
 
