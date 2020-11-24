@@ -10,8 +10,8 @@ function absorption = fiberAbsorptionTwoInterfaces(ncore, nclad, diameter, q, al
 
     function result = integrand(u)
         % Distance traveled inside core and cladding, respectively
-        dcore = @(u) diameter*sqrt(1 - u.^2/(q*ncore)^2);
-        dclad = @(u) diameter*(sqrt(1 - u.^2/nclad^2) - sqrt(1 - u.^2/(q*nclad)^2));
+        dcore = @(u) diameter*sqrt(q^2 - u.^2/ncore^2);
+        dclad = @(u) diameter*(sqrt(1 - u.^2/nclad^2) - sqrt(q^2 - u.^2/nclad^2));
 
         cosAir = @(u) sqrt(1 - u.^2);
         cosClad1 = @(u) sqrt(1 - u.^2/nclad^2);
