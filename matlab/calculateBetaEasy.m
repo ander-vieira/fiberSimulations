@@ -9,8 +9,6 @@ ncore = refractionIndexPMMA(lambda);
 % Minimum value of cosine of angle so total internal reflection happens
 minimumValue = sqrt(1-1/ncore^2);
 
-positions = zeros(M, 3);
-
 reflectedRays = 0;
 
 for i=1:M
@@ -21,7 +19,6 @@ for i=1:M
         rand2 = 2 - rand2;
     end
     position = [rand2*cos(rand1) rand2*sin(rand1) 0];
-    positions(i, :) = position;
     
     % Generate random direction
     rand1 = 2*pi*rand();
@@ -37,7 +34,7 @@ for i=1:M
     end
     
     % "Time" until ray reaches edge of fiber
-    tau = -beta+sqrt(beta^2-gamma);
+    tau = sqrt(beta^2-gamma)-beta;
     
     % Get position of first reflection + normal vector
     normalVector = [position(1)+direction(1)*tau position(2)+direction(2)*tau 0];

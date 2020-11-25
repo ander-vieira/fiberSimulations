@@ -10,7 +10,7 @@ M = 200000; % Number of photons to simulate
 
 rng('shuffle');
 
-minlambda = 500e-9;
+minlambda = 250e-9;
 dlambda = 1e-9;
 maxlambda = 750e-9;
 da = 5e-6;
@@ -183,7 +183,7 @@ for i = 1:M
         end
     end
     
-    if nargout == 0 && mod(i, 100) == 0
+    if nargout == 0 && mod(i, 1000) == 0
         fprintf('\b\b\b\b\b\b%06d', i);
     end
 end
