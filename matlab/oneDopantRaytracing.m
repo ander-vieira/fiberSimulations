@@ -6,7 +6,7 @@ function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, 
 
 tic;
 
-M = 200000; % Number of photons to simulate
+M = 50000; % Number of photons to simulate
 
 rng('shuffle');
 
