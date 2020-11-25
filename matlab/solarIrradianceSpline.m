@@ -5,7 +5,7 @@ if nargin < 2
 end
 if(nargin < 3 || isempty(rawdata))
     % Read data from the csv file
-	rawdata = csvread('solarIrradiance.csv');
+	rawdata = csvread('../csv/solarIrradiance.csv');
 end
 rawlambdas = rawdata(:, 1)*1e-9;
 

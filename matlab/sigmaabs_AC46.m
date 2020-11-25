@@ -5,7 +5,7 @@ function sigmaabs = sigmaabs_AC46(lambda)
 referenceLambda = 379e-9;
 referenceSigma = 3.45e-23;
 
-rawdata = csvread('sigmaabs_AC46.csv');
+rawdata = csvread('../csv/sigmaabs_AC46.csv');
 rawlambdas = rawdata(:, 1)*1e-9;
 rawvalues = rawdata(:, 2);
 

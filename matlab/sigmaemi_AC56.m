@@ -5,7 +5,7 @@ function sigmaemi = sigmaemi_AC56(lambda)
 referenceLambda = 614e-9;
 referenceSigma = 4.64e-24; % Check this
 
-rawdata = csvread('sigmaemi_AC56.csv');
+rawdata = csvread('../csv/sigmaemi_AC56.csv');
 rawlambdas = rawdata(:, 1)*1e-9;
 rawvalues = rawdata(:, 2);
 
