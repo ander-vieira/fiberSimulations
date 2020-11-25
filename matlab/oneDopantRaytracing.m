@@ -6,14 +6,14 @@ function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, 
 
 tic;
 
-M = 50000; % Number of photons to simulate
+M = 200000; % Number of photons to simulate
 
 rng('shuffle');
 
 minlambda = 500e-9;
 dlambda = 1e-9;
 maxlambda = 750e-9;
-da = 1e-6;
+da = 5e-6;
 
 incidenceAngle = deg2rad(incidenceAngleDegrees);
 rotationMatrix = [1 0 0 ; 0 cos(incidenceAngle) -sin(incidenceAngle) ; 0 sin(incidenceAngle) cos(incidenceAngle)]';
@@ -34,10 +34,11 @@ emittedDistribution = emittedDistribution/sum(emittedDistribution);
 position = zeros(2, 3);
 incomingPower = solarConstant*diameter*lightL*cos(incidenceAngle); % W
 finalPower = 0; % W
+finalWavelengths = zeros(1, M);
 finalPhotons = 0;
 runawayPhotons = 0;
 PMMAPhotons = 0;
-absorptions = 0;
+absorptions = zeros(1, M);
 
 if nargout == 0
     fprintf('i = 000000');
@@ -54,7 +55,6 @@ for i = 1:M
     direction = [0 -1 0]*rotationMatrix;
     position(2, :) = [diameter*(rand()-1/2) 0 lightL*rand()]+[0 0.55*diameter/rotationMatrix(2, 2) 0]*rotationMatrix;
     
-    incoming = true;
     loopOn = true;
     while loopOn
         position(1, :) = position(2, :);
@@ -78,10 +78,19 @@ for i = 1:M
         if prevInFiber ~= inFiber
             % Refraction in air-fiber interface
             
-            incoming = false;
+            % Calculate intersection with fiber's edge
+            beta = (direction(1)*position(1, 1)+direction(2)*position(1, 2))/(direction(1)^2+direction(2)^2);
+            gamma = (position(1, 1)^2+position(1, 2)^2-diameter^2/4)/(direction(1)^2+direction(2)^2);
+            
+            if beta > 0
+                ds = sqrt(beta^2-gamma)-beta;
+            else
+                ds = -sqrt(beta^2-gamma)-beta;
+            end
+            position(2, :) = position(1, :) + direction*ds;
             
             % Get normal vector of fiber surface
-            normalVector = position(1, :)+position(2, :);
+            normalVector = position(2, :);
             normalVector(3) = 0;
             normalVector = normalVector/vecnorm(normalVector);
             
@@ -96,10 +105,6 @@ for i = 1:M
                 
                 % Get reflected direction
                 direction = 2*projectedVector - direction;
-                
-                % Keep inside the fiber so photon doesn't disappear
-                position(2, :) = position(1, :);
-                inFiber = ~inFiber;
             else
                 % Regular refraction
                 
@@ -120,11 +125,21 @@ for i = 1:M
                 % Actually change the direction
                 direction = newDirection;
             end
+            
+            % Move in the new direction (out of the boundary)
+            position(2, :) = position(2, :) + direction*prevN*da;
+            ds = ds + prevN*da;
+            
+            [inFiber, ~] = getRefractionIndex(position(2, :), diameter, lambda);
         end
         
-        % Photon left bounds of simulation (removed for performance)
-        if(abs(position(2, 1)) > diameter  || abs(position(2, 2)) > diameter)
-            loopOn = false;
+        % Photon leaves the fiber (and is lost)
+        if(~inFiber)
+            normalVector = [position(2, 1) ; position(2, 2) ; 0];
+            if(direction*normalVector > 0)
+                loopOn = false;
+                runawayPhotons = runawayPhotons + 1;
+            end
         end
         
         % Photon may be absorbed by PMMA (and lost)
@@ -134,7 +149,7 @@ for i = 1:M
         end
         
         % Photon may be absorbed by dopant (and reemitted)
-        if(inFiber && rand() < sigmaabs*N*ds)
+        if(loopOn && inFiber && rand() < sigmaabs*N*ds)
             % Generate random direction
             rand1 = 2*pi*rand();
             rand2 = 2*rand()-1;
@@ -149,28 +164,22 @@ for i = 1:M
             % Change photon power (Stokes shift loss)
             photonPower = photonPower*oldLambda/lambda;
             
-            absorptions = absorptions + 1;
-        end
-        
-        % Photon leaves the fiber (and is lost)
-        if(~inFiber)
-            normalVector = [position(2, 1) ; position(2, 2) ; 0];
-            if(direction*normalVector > 0)
-                loopOn = false;
-                runawayPhotons = runawayPhotons + 1;
-            end
+            absorptions(i) = absorptions(i) + 1;
         end
         
         % Photon reaches right end of fiber (and is concentrated)
         if(loopOn && inFiber && position(2, 3) >= lightL + darkL && position(1, 3) < lightL + darkL)
             finalPower = finalPower + photonPower;
             finalPhotons = finalPhotons + 1;
+            finalWavelengths(i) = lambda;
             loopOn = false;
         end
         
         % Photon reaches ends of fiber but isn't concentrated (and is lost)
-        if(~incoming && (position(2, 3) < 0 || position(2, 3) >= lightL + darkL))
+        if(loopOn && inFiber && (position(2, 3) < 0 || position(2, 3) >= lightL + darkL))
             loopOn = false;
+            
+            runawayPhotons = runawayPhotons + 1;
         end
     end
     
@@ -182,13 +191,22 @@ if nargout == 0
     fprintf('\n');
 end
 
+finalWavelengths = finalWavelengths(finalWavelengths>0);
+
 if nargout == 0
     fprintf('Simulation time: %.1f s\n', toc());
     fprintf('Output power of fiber: %g uW\n', finalPower*1e6);
     fprintf('Photons reaching output: %d/%d\n', finalPhotons, M);
     fprintf('Photons leaving the fiber: %d/%d\n', runawayPhotons, M);
     fprintf('Photons absorbed by PMMA: %d/%d\n', PMMAPhotons, M);
-    fprintf('Absorptions: %d\n', absorptions);
+    fprintf('Average absorptions: %.4f\n', sum(absorptions)/M);
+    fprintf('Photons absorbed by the fiber: %d/%d\n', sum(absorptions > 0), M);
+    
+    figure(1);
+    histogram(finalWavelengths, 100);
+    
+    figure(2);
+    histogram(absorptions);
 end
 
 end
