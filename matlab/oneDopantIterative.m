@@ -35,7 +35,8 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+% beta = (ncore - 1)./(2*ncore);
+beta = zeros(1, numll);
 
 efficiency = zeros(1, numll);
 for k = 1:numll
@@ -43,6 +44,7 @@ for k = 1:numll
 %     efficiency(k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
 %     efficiency(k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
     efficiency(k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, .98, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
+    beta(k) = calculateBetaIntegral(ll(k));
 end
 
 % Precalculated constants
