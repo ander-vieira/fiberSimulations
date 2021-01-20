@@ -62,7 +62,7 @@ Pespconst = concentrationToPower.*beta.*wnsp*dz*wTD/(wDT+wTD)/tauD;
 
 P = zeros(2, numzz, numll);
 Pleft = zeros(2, numzz, numll);
-N2 = zeros(2, numzz-1);
+NZ = zeros(2, numzz-1);
 
 i = 0;
 imin = 100;
@@ -70,36 +70,36 @@ error = 0;
 while i < imin || error > 1e-7
     P(1, :, :) = P(2, :, :);
     Pleft(1, :, :) = Pleft(2, :, :);
-    N2(1, :) = N2(2, :);
+    NZ(1, :) = NZ(2, :);
     
     % Boundary condition for P
     P(2, 1, :) = zeros(1, 1, numll);
     Pleft(2, end, :) = zeros(1, 1, numll);
     
-    % Update NT and ND
+    % Update NZ (NT and ND together)
     for j = 1:numzz-1
-        evalN2 = N2(1, j);
+        evalNZ = NZ(1, j);
         
-        N2(2, j) = N2(1, j);
+        NZ(2, j) = NZ(1, j);
         
-        N2(2, j) = N2(2, j) - evalN2*NTespconst;
-        N2(2, j) = N2(2, j) - evalN2*NDespconst;
+        NZ(2, j) = NZ(2, j) - evalNZ*NTespconst;
+        NZ(2, j) = NZ(2, j) - evalNZ*NDespconst;
         
         if j <= lightj
-            N2(2, j) = N2(2, j) + Nsolconst;
+            NZ(2, j) = NZ(2, j) + Nsolconst;
         end
         
         for k = 1:numll
             evalP = (P(1, j, k)+P(1, j+1, k)+Pleft(1, j, k)+Pleft(1, j+1, k))/2;
             
-            N2(2, j) = N2(2, j) + Nabsconst(k)*evalP*(N-evalN2);
-            N2(2, j) = N2(2, j) - Nestconst(k)*evalP*evalN2;
+            NZ(2, j) = NZ(2, j) + Nabsconst(k)*evalP*(N-evalNZ);
+            NZ(2, j) = NZ(2, j) - Nestconst(k)*evalP*evalNZ;
         end
     end
     
     % Update P
     for j = 1:numzz-1
-        evalN2 = N2(2, j);
+        evalNZ = NZ(2, j);
         
         for k = 1:numll
             evalP = P(2, j, k);
@@ -110,15 +110,15 @@ while i < imin || error > 1e-7
             P(2, j+1, k) = P(2, j+1, k) - Ppropconst(k)*evaldP;
             P(2, j+1, k) = P(2, j+1, k) - Pattconst(k)*evalP;
             
-            P(2, j+1, k) = P(2, j+1, k) + Pespconst(k)*evalN2;
-            P(2, j+1, k) = P(2, j+1, k) + Pestconst(k)*evalP*evalN2;
-            P(2, j+1, k) = P(2, j+1, k) - Pabsconst(k)*evalP*(N-evalN2);
+            P(2, j+1, k) = P(2, j+1, k) + Pespconst(k)*evalNZ;
+            P(2, j+1, k) = P(2, j+1, k) + Pestconst(k)*evalP*evalNZ;
+            P(2, j+1, k) = P(2, j+1, k) - Pabsconst(k)*evalP*(N-evalNZ);
         end
     end
     
     % Update Pleft
     for jinv = numzz:-1:2
-        evalN2 = N2(2, jinv-1);
+        evalNZ = NZ(2, jinv-1);
         
         for k = 1:numll
             evalP = Pleft(2, jinv, k);
@@ -129,9 +129,9 @@ while i < imin || error > 1e-7
             Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) - Ppropconst(k)*evaldP;
             Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) - Pattconst(k)*evalP;
             
-            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) + Pespconst(k)*evalN2;
-            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) + Pestconst(k)*evalP*evalN2;
-            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) - Pabsconst(k)*evalP*(N-evalN2);
+            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) + Pespconst(k)*evalNZ;
+            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) + Pestconst(k)*evalP*evalNZ;
+            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) - Pabsconst(k)*evalP*(N-evalNZ);
         end
     end
     
@@ -148,7 +148,7 @@ lightPout = sum(Pout);
 diodeSurface = pi*diameter^2/4; % m^2
 electricPout = solarCellConversion(ll, Pout, diodeSurface);
 
-estimatedError = max(N2(2, :))*diameter*max(sigmaabs);
+estimatedError = max(NZ(2, :))*diameter*max(sigmaabs);
 
 if nargout == 0
     fprintf('Simulation time: %.1f s\n', toc());
