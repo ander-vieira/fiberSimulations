@@ -64,6 +64,9 @@ P = zeros(2, numzz, numll);
 Pleft = zeros(2, numzz, numll);
 NZ = zeros(2, numzz-1);
 
+timeMult = 10;
+Ptime = zeros(10, numll);
+
 i = 0;
 imin = 100;
 error = 0;
@@ -138,6 +141,10 @@ while i < imin || error > 1e-7
     i = i + 1;
     % Calculate the error (for the loop condition)
     error = max(abs((P(2, end, :)-P(1, end, :))./(P(2, end, :)+realmin)));
+    
+    if(mod(i, timeMult) == 0)
+        Ptime(i/timeMult, :) = P(2, end, :);
+    end
 end
 
 elapsedTime = i*dt;
@@ -162,6 +169,12 @@ if nargout == 0
     title('Power spectrum at end of fiber (FDM method)');
     xlabel('\lambda (nm)');
     ylabel('Power spectrum (\muW/nm)');
+    
+    figure(2);
+    plot((1:size(Ptime, 1))*dt*timeMult*1e6, sum(Ptime, 2)*1e6);
+    title('Output power over time (FDM method)');
+    xlabel('t (\mus)');
+    ylabel('Output optical power (\muW)');
 end
 
 end
