@@ -89,7 +89,7 @@ for m = 1:numDyeDopants
     end
 end
 
-earthEfficiency = zeros(numDyeDopants, numll);
+earthEfficiency = zeros(numEarthDopants, numll);
 for m = 1:numEarthDopants
     for k = 1:numll
         alfaCore = alfaPMMA(k) + sum(dyeSigmaabs(:, k).*dyeN')+ sum(earthSigmaabs(:, k).*earthN') + realmin;
