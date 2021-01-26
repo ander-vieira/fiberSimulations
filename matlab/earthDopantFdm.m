@@ -12,7 +12,7 @@ end
 c = 3e8; % Speed of light (m/s)
 h = 6.63e-34; % Planck constant (J*s)
 
-minlambda = 240e-9;
+minlambda = 340e-9;
 dlambda = 2e-9;
 maxlambda = 740e-9;
 
@@ -55,7 +55,8 @@ Nabsconst = sigmaabs*dt./concentrationToPower;
 Nestconst = sigmaemi*wTD/(wDT+wTD)*dt./concentrationToPower;
 Ppropconst = ncore*dz/(c*dt);
 Pattconst = alfaPMMA*dz;
-Pabsconst = sigmaabs*dz;
+Pabsconst1 = sigmaabs*dz;
+Pabsconst2 = wDT/(wDT+wTD)*sigmaabs*dz;
 Pestconst = sigmaemi*wTD/(wDT+wTD)*dz;
 % Pespconst = concentrationToPower.*beta.*wnsp*dz*wTD/(wDT+wTD)/tauD+concentrationToPower.*beta.*wnsp*dz*wDT/(wDT+wTD)/tauT;
 Pespconst = concentrationToPower.*beta.*wnsp*dz*wTD/(wDT+wTD)/tauD;
@@ -112,7 +113,8 @@ while i < imin || error > 1e-7
             
             P(2, j+1, k) = P(2, j+1, k) + Pespconst(k)*evalNZ;
             P(2, j+1, k) = P(2, j+1, k) + Pestconst(k)*evalP*evalNZ;
-            P(2, j+1, k) = P(2, j+1, k) - Pabsconst(k)*evalP*(N-evalNZ);
+            P(2, j+1, k) = P(2, j+1, k) - Pabsconst1(k)*evalP*N;
+            P(2, j+1, k) = P(2, j+1, k) + Pabsconst2(k)*evalP*evalNZ;
         end
     end
     
@@ -131,7 +133,7 @@ while i < imin || error > 1e-7
             
             Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) + Pespconst(k)*evalNZ;
             Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) + Pestconst(k)*evalP*evalNZ;
-            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) - Pabsconst(k)*evalP*(N-evalNZ);
+            Pleft(2, jinv-1, k) = Pleft(2, jinv-1, k) - Pabsconst1(k)*evalP*(N-evalNZ);
         end
     end
     

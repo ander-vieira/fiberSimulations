@@ -109,7 +109,7 @@ Pattconst = (alfaPMMA+dyeN*dyeSigmaabs+earthN*earthSigmaabs)*dz;
 dyePNconst1 = concentrationToPower.*beta.*dyeWnsp*dz./dyeTau;
 dyePNconst2 = (dyeSigmaabs+dyeSigmaemi)*dz;
 earthPNconst1 = concentrationToPower.*beta.*earthWnsp*dz./earthTauD;
-earthPNconst2 = (earthSigmaabs+earthSigmaemi)*dz;
+earthPNconst2 = earthSigmaemi*dz;
 earthPNconst3 = earthSigmaabs*dz;
 
 P = zeros(numzz, numll);
@@ -151,7 +151,7 @@ while error > 1e-8
             wabs = sum(earthNabsconst(m, :).*evalP);
             west = sum(earthNestconst(m, :).*evalP);
 
-            A = [1/earthTauT(m)+earthwTD(m)+wabs -earthwDT(m)+wabs ; -earthwTD(m) 1/earthTauD(m)+earthwDT(m)+west];
+            A = [1/earthTauT(m)+earthwTD(m)+wabs -earthwDT(m) ; -earthwTD(m) 1/earthTauD(m)+earthwDT(m)+west];
 
             if j <= lightj
                 b = [earthNsolconst(m)+earthN(m)*wabs ; 0];
