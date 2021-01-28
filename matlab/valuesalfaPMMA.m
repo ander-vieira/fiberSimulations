@@ -135,7 +135,7 @@ datos = [               % primera columna lambda (nm), segunda columna alfa. % N
 
 %Poner los datos en valores absolutos:
 datos(:,2) = 0.01 * 10.^(0.3 * datos(:,2)); %puesto en dB/m
-datos(:,2) = datos(:,2)*0.5; %fibra con un mínimo de 0.08 dB/m el el verde
+datos(:,2) = datos(:,2)*0.3; %fibra con un mínimo de 0.08 dB/m el el verde
 %quito datos(:,2) = datos(:,2)*0.25; %fibra con un mínimo de 0.04 dB/m el el verde
 %quito datos(:,2) = datos(:,2)*1e-6; %fibra sin atenuación
 
