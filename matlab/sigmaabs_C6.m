@@ -111,7 +111,7 @@ rawdata = [               % primera columna lambda (nm), segunda columna sigma e
     578                      0
     580                      0];
 
-rawdata(:,2) = rawdata(:,2)*0.96113;
+rawdata(:,2) = rawdata(:,2)*0.60632;
 rawdata(:,2) = rawdata(:,2)*0.739e-20;
 rawlambdas = rawdata(:, 1)*1e-9;
 rawvalues = rawdata(:, 2);
