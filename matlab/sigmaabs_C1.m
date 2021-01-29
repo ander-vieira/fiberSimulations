@@ -38,10 +38,11 @@ if lambda<249e-9, sigmaabs = 0; return; end
 lambda = lambda*1e9;    % trabajar en nm para mejorar el condicionamiento
 datos = [               % primera columna lambda (nm), segunda columna sigma emisión sin normalizar (a.u.)    
     230        0
+    232        0
     235        0
     237.18  0
     249.38  0
-219.49            0
+    259.49            0
        282.53            0
        285.19   3.4839e-22
        291.27    1.012e-21
@@ -70,10 +71,13 @@ datos = [               % primera columna lambda (nm), segunda columna sigma emi
         396.5   1.4931e-22
        399.49            0
           600            0
+          650            0
     752               0
     753               0
     754               0
     755               0
+    800               0
+    850               0
     ];
 %Poner los datos en valores absolutos:
 %sigmapico = 1.5e-20;      % Valor al que hay que normalizar
