@@ -4,6 +4,7 @@ function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, ea
 %   Iterative method: gets the stationary state of the fiber
 %   but still allows simulating bidirectional propagation
 %   
+%   Parameters:
 %   dyeDopant: array with the names of each dye dopant
 %   dyeN: array with the concentration of each dye dopant (m^-3)
 %   Must be the same length as dyeDopant
@@ -13,7 +14,7 @@ function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, ea
 %   diameter: the fiber's diameter (m)
 %   lightL: illuminated length of the fiber (m)
 %   darkL: non-illuminated length at the end of the fiber (m)
-
+%   
 %   Example calls:
 %   combinedDopantIterative(["C1" "C6"], [.7 1]*5.9226e22, [""], [0], 1e-3, .06, .03);
 %   combinedDopantIterative([""], [0], ["AC46"], [3e23], 1e-3, .1);
@@ -30,7 +31,7 @@ end
 c = 3e8; % Speed of light (m/s)
 h = 6.63e-34; % Planck constant (J*s)
 
-minlambda = 340e-9;
+minlambda = 240e-9;
 dlambda = 2e-9;
 maxlambda = 740e-9;
 
