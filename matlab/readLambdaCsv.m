@@ -1,0 +1,37 @@
+function values = readLambdaCsv(csvFile, lambdas, referenceLambda, referenceValue)
+%READLAMBDACSV Read a function of wavelength from a CSV file
+%   Reads a CSV file for lambda:value (x:y) pairs
+%   and uses those values to perform spline interpolation
+%   for an array of lambda values.
+%   Note: lambda values in the CSV files should be in nm.
+%   The function returns 0 for lambdas outside the ones in the CSV file.
+%   
+%   Parameters:
+%   csvFile: the path to the CSV file (relative to this file or absolute)
+%   lambda: array of wavelengths to get the values for (m)
+%   referenceLambda: a lambda value to scale the values from the CSV
+%   referenceValue: the value the function needs to have at referenceLambda
+
+%   Example calls:
+%   readLambdaCsv("../csv/sigmaabs_AC46.csv", lambdas, 379e-9, 3.45e-23);
+%   readLambdaCsv("../csv/sigmaemi_AC46.csv", lambdas, 614e-9, 4.64e-24);
+
+% referenceLambda = 614e-9;
+% referenceSigma = 4.64e-24;
+
+% Read data from the CSV file
+rawData = csvread(csvFile);
+rawLambdas = rawData(:, 1)*1e-9;
+rawValues = rawData(:, 2);
+
+% Scale data using the reference values
+rawValues = rawValues*referenceValue/spline(rawLambdas, rawValues, referenceLambda);
+
+% Spline interpolation for the desired values
+values = spline(rawLambdas, rawValues, lambdas);
+
+% Remove negative values (!) and values outside the range of the CSV file
+values = values.*(values>=0).*(lambdas>=min(rawLambdas)).*(lambdas<=max(rawLambdas));
+
+end
+
