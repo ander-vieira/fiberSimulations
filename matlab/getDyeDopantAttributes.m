@@ -8,8 +8,8 @@ if strcmp(dopant, 'RhB')
     quenchingB = -3;
 elseif strcmp(dopant, 'C1')
     tau = 3.4e-9;
-    sigmaabs = @sigmaabs_C1;
-    sigmaemi = @sigmaemi_C1;
+    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_C1.csv", lambdas, 341.01e-9, 8.3465e-21);
+    sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_C1.csv", lambdas, 404.84e-9, 8.3713e-21);
     quenchingA = 0; % Not known -> no quenching happens
     quenchingB = -3;
 elseif strcmp(dopant, 'C6')
