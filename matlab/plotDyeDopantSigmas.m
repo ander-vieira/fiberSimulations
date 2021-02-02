@@ -11,7 +11,6 @@ ll = (240:1:840)*1e-9;
 sigmaabs = sigmaabsFun(ll);
 sigmaemi = sigmaemiFun(ll);
 
-close(figura);
 figure(figura);
 plot(ll*1e9, sigmaabs);
 hold on;
