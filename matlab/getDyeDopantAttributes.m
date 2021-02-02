@@ -14,8 +14,10 @@ elseif strcmp(dopant, 'C1')
     quenchingB = -3;
 elseif strcmp(dopant, 'C6')
     tau = 3.4e-9; % Need to check again
-    sigmaabs = @sigmaabs_C6;
-    sigmaemi = @sigmaemi_C6;
+%     sigmaabs = @sigmaabs_C6;
+%     sigmaemi = @sigmaemi_C6;
+    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_C6.csv", lambdas, 459e-9, 2.8525e-20);
+    sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_C6.csv", lambdas, 501e-9, 1.8221e-20);
     quenchingA = 0; % Not known -> no quenching happens
     quenchingB = -3;
 elseif strcmp(dopant, 'LumogenRed')
