@@ -18,10 +18,10 @@ if nargout == 0
     tic;
 end
 
-c = 3e8;
+c = 3e8; % m/s
 
-ll = (240:2:740)*1e-9;
-ww = 2*pi*c./ll;
+ll = (240:2:740)*1e-9; % m
+ww = 2*pi*c./ll; % s^-1
 
 % Number of sets of random values to generate
 N = 500000;
@@ -30,15 +30,17 @@ N = 500000;
 sigmaabs = sigmaabsFun(ll);
 
 % Interval of wavelengths to generate randomly between
-lambdaMin = 440e-9;
-lambdaMax = 640e-9;
+lambdaMin = 440e-9; % m
+lambdaMax = 640e-9; % m
 
-% Determines the width of the gaussian curves
-deltaWMin = 5e13;
+% Intervals for the random deltaW
+% It determines the width of the gaussian curves
+deltaWMin = 5e13; % s^-1
+deltaWMax = 5e14; % s^-1
 
-lambdaVals = zeros(numVals, N);
-cVals = zeros(numVals, N);
-deltaWVals = zeros(1, N);
+lambdaVals = zeros(numVals, N); % m
+cVals = zeros(numVals, N); % m^2
+deltaWVals = zeros(1, N); % s^-1
 error = zeros(1, N);
 for i = 1:N
     % Generate the random lambda values and the corresponding frequencies
@@ -46,13 +48,14 @@ for i = 1:N
     wVals = 2*pi*c./lambdaVals(:, i);
     
     % Generate the deltaW values randomly
-    deltaWVals(i) = deltaWMin*10^rand();
+    deltaWVals(i) = deltaWMin*(deltaWMax/deltaWMin)^rand();
     
     % Defines a matrix with the coefficients for least-squares
     % approximation. All of them are gaussian curves
     M = exp(-(ww'-wVals').^2/deltaWVals(i)^2);
     
-    % Use MATLAB built-in LS approximation.
+    % Use MATLAB built-in LS approximation to get the coefficients
+    % of the gaussian curves
     cVals(:, i) = M\sigmaabs';
     
     % Calculate the error of the approximation
