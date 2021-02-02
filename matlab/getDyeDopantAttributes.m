@@ -24,6 +24,12 @@ elseif strcmp(dopant, 'LumogenRed')
     sigmaemi = @sigmaemi_LumogenRed;
     quenchingA = 7.3e9;
     quenchingB = -3.92;
+elseif strcmp(dopant, 'LumogenOrange')
+    tau = 6e-9;
+    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_LumO.csv", lambdas, 527e-9, 2.4537e-20);
+    sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_LumO.csv", lambdas, 569e-9, 2.5168e-20);
+    quenchingA = 0;
+    quenchingB = -3;
 else % Default is Rh6G
     tau = 4.8e-9;
     sigmaabs = @sigmaabs_Rh6G;
