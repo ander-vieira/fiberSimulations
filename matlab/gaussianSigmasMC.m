@@ -24,10 +24,7 @@ ll = (240:2:740)*1e-9;
 ww = 2*pi*c./ll;
 
 % Number of sets of random values to generate
-N = 100000;
-
-% Determines the width of the gaussian curves
-deltaW = 2e14;
+N = 500000;
 
 % Sample the given sigma function
 sigmaabs = sigmaabsFun(ll);
@@ -36,17 +33,24 @@ sigmaabs = sigmaabsFun(ll);
 lambdaMin = 440e-9;
 lambdaMax = 640e-9;
 
+% Determines the width of the gaussian curves
+deltaWMin = 5e13;
+
 lambdaVals = zeros(numVals, N);
 cVals = zeros(numVals, N);
+deltaWVals = zeros(1, N);
 error = zeros(1, N);
 for i = 1:N
     % Generate the random lambda values and the corresponding frequencies
     lambdaVals(:, i) = lambdaMin + (lambdaMax-lambdaMin)*rand(numVals, 1);
     wVals = 2*pi*c./lambdaVals(:, i);
     
+    % Generate the deltaW values randomly
+    deltaWVals(i) = deltaWMin*10^rand();
+    
     % Defines a matrix with the coefficients for least-squares
     % approximation. All of them are gaussian curves
-    M = exp(-(ww'-wVals').^2/deltaW^2);
+    M = exp(-(ww'-wVals').^2/deltaWVals(i)^2);
     
     % Use MATLAB built-in LS approximation.
     cVals(:, i) = M\sigmaabs';
@@ -62,7 +66,9 @@ minError = min(error(min(cVals) >= 0));
 bestLambda = lambdaVals(:, error == minError);
 bestW = 2*pi*c./bestLambda;
 
-M = exp(-(ww'-bestW').^2/deltaW^2);
+bestDeltaW = deltaWVals(error == minError);
+
+M = exp(-(ww'-bestW').^2/bestDeltaW^2);
 bestC = cVals(:, error == minError);
 
 if nargout == 0
@@ -80,6 +86,7 @@ if nargout == 0
     for i = 1:numVals
         fprintf('%.2f nm: c = %g\n', bestLambda(i)*1e9, bestC(i));
     end
+    fprintf('Delta W: %g\n', bestDeltaW);
     fprintf('Error: %g\n', minError);
 end
 
