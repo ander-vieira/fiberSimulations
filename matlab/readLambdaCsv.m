@@ -27,8 +27,15 @@ rawValues = rawData(:, 2);
 % Scale data using the reference values
 rawValues = rawValues*referenceValue/spline(rawLambdas, rawValues, referenceLambda);
 
-% Spline interpolation for the desired values
-values = spline(rawLambdas, rawValues, lambdas);
+% Low pass filter parameters
+% If either is 0, there's no LPF applied
+dlambda = 0.5e-9;
+windowSize = 4;
+
+% Spline interpolation N times, then averages all of them (low pass filter)
+lambdaM = (-windowSize:windowSize)'*dlambda.*ones(1, length(lambdas))+lambdas;
+valuesM = spline(rawLambdas, rawValues, lambdaM);
+values = sum(valuesM, 1)/(2*windowSize+1);
 
 % Remove negative values (!) and values outside the range of the CSV file
 values = values.*(values>=0).*(lambdas>=min(rawLambdas)).*(lambdas<=max(rawLambdas));
