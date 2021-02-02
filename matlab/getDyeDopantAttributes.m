@@ -26,7 +26,7 @@ elseif strcmp(dopant, 'LumogenRed')
     quenchingB = -3.92;
 elseif strcmp(dopant, 'LumogenOrange')
     tau = 6e-9;
-    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_LumO.csv", lambdas, 527e-9, 2.5351e-20);
+    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_LumO.csv", lambdas, 527e-9, 2.5290e-20);
     sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_LumO.csv", lambdas, 569e-9, 2.5168e-20);
     quenchingA = 0;
     quenchingB = -3;
