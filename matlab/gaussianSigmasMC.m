@@ -1,4 +1,4 @@
-function [error, bestLambda, bestC, bestDeltaW] = gaussianSigmasMC(sigmaabsFun, numVals)
+function [minError, bestLambda, bestC, bestDeltaW] = gaussianSigmasMC(sigmaabsFun, numVals)
 % GAUSSIANSIGMASMC Get the best least-squares approximation to a sigma
 % This function tries to approximate the given sigma function via a series
 % of gaussian functions weighted with coefficients. If the positions of
