@@ -80,7 +80,7 @@ if nargout == 0
     plot(ll*1e9, sigmaabs);
     hold on;
     plot(ll*1e9, M*bestC);
-    title(sprintf('Error: %e', min(error)));
+    title(sprintf('Error: %e', minError));
     xlabel('\lambda (nm)');
 
     % Print the values that yield the best result
