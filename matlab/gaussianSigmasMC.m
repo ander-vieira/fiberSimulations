@@ -1,4 +1,4 @@
-function [error, bestLambda, bestC] = gaussianSigmasMC(sigmaabsFun, numVals)
+function [error, bestLambda, bestC, bestDeltaW] = gaussianSigmasMC(sigmaabsFun, numVals)
 % GAUSSIANSIGMASMC Get the best least-squares approximation to a sigma
 % This function tries to approximate the given sigma function via a series
 % of gaussian functions weighted with coefficients. If the positions of
@@ -67,19 +67,18 @@ minError = min(error(min(cVals, [], 1) >= 0));
 
 % Get the lambda and c values for the smallest error obtained
 bestLambda = lambdaVals(:, error == minError);
-bestW = 2*pi*c./bestLambda;
-
+bestC = cVals(:, error == minError);
 bestDeltaW = deltaWVals(:, error == minError);
 
-M = exp(-(ww'-bestW').^2./bestDeltaW'.^2);
-bestC = cVals(:, error == minError);
+sigmaApprox = generateGaussianSigma(bestLambda, bestC, bestDeltaW);
+bestApprox = sigmaApprox(ll);
 
 if nargout == 0
     % Print figure with given and approximated sigma
     figure(1);
     plot(ll*1e9, sigmaabs);
     hold on;
-    plot(ll*1e9, M*bestC);
+    plot(ll*1e9, bestApprox);
     title(sprintf('Error: %e', minError));
     xlabel('\lambda (nm)');
 
