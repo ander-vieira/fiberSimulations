@@ -26,8 +26,8 @@ rawValues = rawValues*referenceValue/spline(rawLambdas, rawValues, referenceLamb
 
 % Low pass filter parameters
 % If either is 0, there's no LPF applied
-dlambda = 0.5e-9;
-windowSize = 2;
+dlambda = 1e-9;
+windowSize = 3;
 
 % window = ones(2*windowSize+1, 1)/(2*windowSize+1);
 window = exp(-(-windowSize:windowSize)'.^2/9);
