@@ -80,7 +80,12 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll, solarType);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+
+beta = zeros(1, numll);
+for k = 1:numll
+%     beta(k) = calculateBetaBasic(ll(k));
+    beta(k) = calculateBetaIntegral(ll(k));
+end
 
 dyeEfficiency = zeros(numDyeDopants, numll);
 for m = 1:numDyeDopants
