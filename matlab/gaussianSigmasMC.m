@@ -30,7 +30,7 @@ N = 500000;
 sigmaabs = sigmaabsFun(ll);
 
 % Interval of wavelengths to generate randomly between
-lambdaMin = 440e-9; % m
+lambdaMin = 340e-9; % m
 lambdaMax = 640e-9; % m
 
 % Intervals for the random deltaW
@@ -40,7 +40,7 @@ deltaWMax = 5e14; % s^-1
 
 lambdaVals = zeros(numVals, N); % m
 cVals = zeros(numVals, N); % m^2
-deltaWVals = zeros(1, N); % s^-1
+deltaWVals = zeros(numVals, N); % s^-1
 error = zeros(1, N);
 for i = 1:N
     % Generate the random lambda values and the corresponding frequencies
@@ -48,11 +48,11 @@ for i = 1:N
     wVals = 2*pi*c./lambdaVals(:, i);
     
     % Generate the deltaW values randomly
-    deltaWVals(i) = deltaWMin*(deltaWMax/deltaWMin)^rand();
+    deltaWVals(:, i) = deltaWMin*(deltaWMax/deltaWMin).^rand(numVals, 1);
     
     % Defines a matrix with the coefficients for least-squares
     % approximation. All of them are gaussian curves
-    M = exp(-(ww'-wVals').^2/deltaWVals(i)^2);
+    M = exp(-(ww'-wVals').^2./deltaWVals(:, i)'.^2);
     
     % Use MATLAB built-in LS approximation to get the coefficients
     % of the gaussian curves
@@ -63,15 +63,15 @@ for i = 1:N
 end
 
 % Get the smallest error value (negative values of c are not allowed)
-minError = min(error(min(cVals) >= 0));
+minError = min(error(min(cVals, [], 1) >= 0));
 
 % Get the lambda and c values for the smallest error obtained
 bestLambda = lambdaVals(:, error == minError);
 bestW = 2*pi*c./bestLambda;
 
-bestDeltaW = deltaWVals(error == minError);
+bestDeltaW = deltaWVals(:, error == minError);
 
-M = exp(-(ww'-bestW').^2/bestDeltaW^2);
+M = exp(-(ww'-bestW').^2./bestDeltaW'.^2);
 bestC = cVals(:, error == minError);
 
 if nargout == 0
@@ -87,9 +87,8 @@ if nargout == 0
     fprintf('Processing time: %.1f s\n', toc());
     fprintf('Best values:\n');
     for i = 1:numVals
-        fprintf('%.2f nm: c = %g\n', bestLambda(i)*1e9, bestC(i));
+        fprintf('%.2f nm: c = %g, deltaW = %g\n', bestLambda(i)*1e9, bestC(i), bestDeltaW(i));
     end
-    fprintf('Delta W: %g\n', bestDeltaW);
     fprintf('Error: %g\n', minError);
 end
 
