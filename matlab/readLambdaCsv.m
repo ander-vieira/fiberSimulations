@@ -27,15 +27,20 @@ rawValues = rawValues*referenceValue/spline(rawLambdas, rawValues, referenceLamb
 % Low pass filter parameters
 % If either is 0, there's no LPF applied
 dlambda = 0.5e-9;
-windowSize = 4;
+windowSize = 2;
+
+% window = ones(2*windowSize+1, 1)/(2*windowSize+1);
+window = exp(-(-windowSize:windowSize)'.^2/9);
+window = window/sum(window);
 
 % Spline interpolation N times, then averages all of them (low pass filter)
 lambdaM = (-windowSize:windowSize)'*dlambda.*ones(1, length(lambdas))+lambdas;
 valuesM = spline(rawLambdas, rawValues, lambdaM);
-values = sum(valuesM, 1)/(2*windowSize+1);
 
 % Remove negative values (!) and values outside the range of the CSV file
-values = values.*(values>=0).*(lambdas>=min(rawLambdas)).*(lambdas<=max(rawLambdas));
+valuesM = valuesM.*(valuesM>=0).*(lambdaM>=min(rawLambdas)).*(lambdaM<=max(rawLambdas));
+
+values = sum(valuesM.*window, 1);
 
 end
 
