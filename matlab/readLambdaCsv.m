@@ -16,9 +16,6 @@ function values = readLambdaCsv(csvFile, lambdas, referenceLambda, referenceValu
 %   readLambdaCsv("../csv/sigmaabs_AC46.csv", lambdas, 379e-9, 3.45e-23);
 %   readLambdaCsv("../csv/sigmaemi_AC46.csv", lambdas, 614e-9, 4.64e-24);
 
-% referenceLambda = 614e-9;
-% referenceSigma = 4.64e-24;
-
 % Read data from the CSV file
 rawData = csvread(csvFile);
 rawLambdas = rawData(:, 1)*1e-9;
