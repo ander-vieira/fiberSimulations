@@ -26,13 +26,14 @@ ll = minlambda:dlambda:maxlambda;
 numll = length(ll);
 
 numDopants = length(dopant);
-tau = zeros(numDopants, 1);
+tauRad = zeros(numDopants, 1);
+tauNR = zeros(numDopants, 1);
 sigmaabs = zeros(numDopants, numll);
 sigmaemi = zeros(numDopants, numll);
 wnsp = zeros(numDopants, numll);
 
 for m = 1:numDopants
-    [tau(m), sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dopant(m));
+    [tauRad(m), sigmaabsFun, sigmaemiFun, tauNR(m)] = getDyeDopantAttributes(dopant(m));
     
     sigmaabs(m, :) = sigmaabsFun(ll);
     sigmaemi(m, :) = sigmaemiFun(ll);
@@ -44,7 +45,12 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+
+beta = zeros(1, numll);
+for k = 1:numll
+%     beta(k) = calculateBetaBasic(ll(k));
+    beta(k) = calculateBetaIntegral(ll(k));
+end
 
 efficiency = zeros(numDopants, numll);
 for m = 1:numDopants
@@ -62,7 +68,7 @@ Nsolconst = diameter*sum(isol*dlambda.*efficiency./concentrationToPower, 2);
 Nabsconst = sigmaabs./concentrationToPower;
 Nestconst = sigmaemi./concentrationToPower;
 Pattconst = (alfaPMMA+N*sigmaabs)*dz;
-PNconst1 = concentrationToPower.*beta.*wnsp*dz./tau;
+PNconst1 = concentrationToPower.*beta.*wnsp*dz./tauRad;
 PNconst2 = (sigmaabs+sigmaemi)*dz;
 
 P = zeros(numzz, numll);
@@ -86,7 +92,7 @@ while error > 1e-8
             wabs = sum(Nabsconst(m, :).*evalP);
             west = sum(Nestconst(m, :).*evalP);
             
-            A = 1/tau(m)+wabs+west;
+            A = 1/tauRad(m)+1/tauNR(m)+wabs+west;
             
             if j <= lightj
                 b = Nsolconst(m)+N(m)*wabs;

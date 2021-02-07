@@ -26,7 +26,7 @@ lightj = lightL/dz;
 ll = minlambda:dlambda:maxlambda;
 numll = length(ll);
 
-[tau, sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dopant);
+[tauRad, sigmaabsFun, sigmaemiFun, tauNR] = getDyeDopantAttributes(dopant);
 sigmaabs = sigmaabsFun(ll);
 sigmaemi = sigmaemiFun(ll);
 wnsp = sigmaemi / sum(sigmaemi);
@@ -36,7 +36,12 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+
+beta = zeros(1, numll);
+for k = 1:numll
+%     beta(k) = calculateBetaBasic(ll(k));
+    beta(k) = calculateBetaIntegral(ll(k));
+end
 
 efficiency = zeros(1, numll);
 for k = 1:numll
@@ -48,7 +53,7 @@ end
 
 % Precalculated constants
 concentrationToPower = pi*h*c*diameter^2./(4*ll);
-Nespconst = dt/tau;
+Nespconst = dt/tauRad+dt/tauNR;
 Nsolconst = sum(isol*dlambda*dt*diameter.*efficiency./concentrationToPower);
 Nabsconst = sigmaabs*dt./concentrationToPower;
 Nestconst = sigmaemi*dt./concentrationToPower;
@@ -56,7 +61,7 @@ Ppropconst = ncore*dz/(c*dt);
 Pattconst = alfaPMMA*dz;
 Pabsconst = sigmaabs*dz;
 Pestconst = sigmaemi*dz;
-Pespconst = concentrationToPower.*beta.*wnsp*dz/tau;
+Pespconst = concentrationToPower.*beta.*wnsp*dz/tauRad;
 
 P = zeros(2, numzz, numll);
 Pleft = zeros(2, numzz, numll);

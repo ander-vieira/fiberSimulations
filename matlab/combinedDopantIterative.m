@@ -45,13 +45,14 @@ ll = minlambda:dlambda:maxlambda;
 numll = length(ll);
 
 numDyeDopants = length(dyeDopant);
-dyeTau = zeros(numDyeDopants, 1);
+dyeTauRad = zeros(numDyeDopants, 1);
+dyeTauNR = zeros(numDyeDopants, 1);
 dyeSigmaabs = zeros(numDyeDopants, numll);
 dyeSigmaemi = zeros(numDyeDopants, numll);
 dyeWnsp = zeros(numDyeDopants, numll);
 
 for m = 1:numDyeDopants
-    [dyeTau(m), sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dyeDopant(m));
+    [dyeTauRad(m), sigmaabsFun, sigmaemiFun, dyeTauNR(m)] = getDyeDopantAttributes(dyeDopant(m));
     
     dyeSigmaabs(m, :) = sigmaabsFun(ll);
     dyeSigmaemi(m, :) = sigmaemiFun(ll);
@@ -112,7 +113,7 @@ dyeNestconst = dyeSigmaemi./concentrationToPower;
 earthNabsconst = earthSigmaabs./concentrationToPower;
 earthNestconst = earthSigmaemi./concentrationToPower;
 Pattconst = (alfaPMMA+dyeN*dyeSigmaabs+earthN*earthSigmaabs)*dz;
-dyePNconst1 = concentrationToPower.*beta.*dyeWnsp*dz./dyeTau;
+dyePNconst1 = concentrationToPower.*beta.*dyeWnsp*dz./dyeTauRad;
 dyePNconst2 = (dyeSigmaabs+dyeSigmaemi)*dz;
 earthPNconst1 = concentrationToPower.*beta.*earthWnsp*dz./earthTauD;
 earthPNconst2 = earthSigmaemi*dz;
@@ -141,7 +142,7 @@ while error > 1e-8
             wabs = sum(dyeNabsconst(m, :).*evalP);
             west = sum(dyeNestconst(m, :).*evalP);
             
-            A = 1/dyeTau(m)+wabs+west;
+            A = 1/dyeTauRad(m)+1/dyeTauNR(m)+wabs+west;
             
             if j <= lightj
                 b = dyeNsolconst(m)+dyeN(m)*wabs;
