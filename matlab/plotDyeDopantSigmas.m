@@ -18,5 +18,6 @@ plot(ll*1e9, sigmaemi);
 xlabel('\lambda (nm)');
 ylabel('\sigma (m^2)');
 title(sprintf('Sigmas for %s', dopant));
+legend('Absorption cross-section', 'Emission cross-section');
 
 end
