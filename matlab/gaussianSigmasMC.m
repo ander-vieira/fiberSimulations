@@ -1,4 +1,4 @@
-function [minError, bestLambda, bestC, bestDeltaW] = gaussianSigmasMC(sigmaabsFun, numVals)
+function [minError, bestLambda, bestC, bestDeltaW] = gaussianSigmasMC(sigmaFun, numVals)
 % GAUSSIANSIGMASMC Get the best least-squares approximation to a sigma
 % This function tries to approximate the given sigma function via a series
 % of gaussian functions weighted with coefficients. If the positions of
@@ -23,20 +23,21 @@ c = 3e8; % m/s
 ll = (240:2:740)*1e-9; % m
 ww = 2*pi*c./ll; % s^-1
 
-% Number of sets of random values to generate
-N = 500000;
-
 % Sample the given sigma function
-sigmaabs = sigmaabsFun(ll);
+sigmaVals = sigmaFun(ll);
 
 % Interval of wavelengths to generate randomly between
-lambdaMin = 340e-9; % m
-lambdaMax = 640e-9; % m
+lambdaMin = 390e-9; % m
+lambdaMax = 590e-9; % m
 
 % Intervals for the random deltaW
 % It determines the width of the gaussian curves
-deltaWMin = 5e13; % s^-1
-deltaWMax = 5e14; % s^-1
+deltaWMin = 4e13; % s^-1
+deltaWMax = 2e15; % s^-1
+
+% Number of sets of random values to generate
+baseN = 50000;
+N = ceil(baseN*(2*numVals)*(lambdaMax-lambdaMin)/100e-9*log10(deltaWMax/deltaWMin));
 
 lambdaVals = zeros(numVals, N); % m
 cVals = zeros(numVals, N); % m^2
@@ -56,10 +57,10 @@ for i = 1:N
     
     % Use MATLAB built-in LS approximation to get the coefficients
     % of the gaussian curves
-    cVals(:, i) = M\sigmaabs';
+    cVals(:, i) = M\sigmaVals';
     
     % Calculate the error of the approximation
-    error(i) = norm(abs(sigmaabs' - M*cVals(:, i)))/norm(sigmaabs)/sqrt(N);
+    error(i) = norm(abs(sigmaVals' - M*cVals(:, i)))/norm(sigmaVals)/sqrt(N);
 end
 
 % Get the smallest error value (negative values of c are not allowed)
@@ -76,7 +77,7 @@ bestApprox = sigmaApprox(ll);
 if nargout == 0
     % Print figure with given and approximated sigma
     figure(1);
-    plot(ll*1e9, sigmaabs);
+    plot(ll*1e9, sigmaVals);
     hold on;
     plot(ll*1e9, bestApprox);
     title(sprintf('Error: %e', minError));
