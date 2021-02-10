@@ -42,7 +42,7 @@ elseif strcmp(dopant, 'LumogenOrange')
 %     sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_LumO.csv", lambdas, 527e-9, 2.5290e-20);
 %     sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_LumO.csv", lambdas+20e-9, 569e-9, 2.1047e-20);
     sigmaabs = generateGaussianSigma([411.93e-9;452.19e-9;487.83e-9;518.51e-9;525.17e-9], [3.80555e-21;4.18278e-21;1.08276e-20;4.03081e-21;1.93256e-20], [3.98957e14;1.04652e14;1.53683e14;4.57131e14;8.45222e13]);
-    sigmaemi = generateGaussianSigma([566.04e-9;572.77e-9;620.67e-9]-20e-9, [1.23702e-20;9.58196e-21;4.79994e-21], [1.50599e14;7.84788e13;1.3689e14]);
+    sigmaemi = generateGaussianSigma([566.04e-9;572.77e-9;620.67e-9], [1.23702e-20;9.58196e-21;4.79994e-21], [1.50599e14;7.84788e13;1.3689e14]);
     quenchingA = 0;
     quenchingB = -3;
     
