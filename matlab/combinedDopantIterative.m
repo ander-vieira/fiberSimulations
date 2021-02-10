@@ -4,6 +4,7 @@ function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, ea
 %   Iterative method: gets the stationary state of the fiber
 %   but still allows simulating bidirectional propagation
 %   
+%   Parameters:
 %   dyeDopant: array with the names of each dye dopant
 %   dyeN: array with the concentration of each dye dopant (m^-3)
 %   Must be the same length as dyeDopant
@@ -13,7 +14,7 @@ function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, ea
 %   diameter: the fiber's diameter (m)
 %   lightL: illuminated length of the fiber (m)
 %   darkL: non-illuminated length at the end of the fiber (m)
-
+%   
 %   Example calls:
 %   combinedDopantIterative(["C1" "C6"], [.7 1]*5.9226e22, [""], [0], 1e-3, .06, .03);
 %   combinedDopantIterative([""], [0], ["AC46"], [3e23], 1e-3, .1);
@@ -30,7 +31,7 @@ end
 c = 3e8; % Speed of light (m/s)
 h = 6.63e-34; % Planck constant (J*s)
 
-minlambda = 340e-9;
+minlambda = 240e-9;
 dlambda = 2e-9;
 maxlambda = 740e-9;
 
@@ -44,13 +45,14 @@ ll = minlambda:dlambda:maxlambda;
 numll = length(ll);
 
 numDyeDopants = length(dyeDopant);
-dyeTau = zeros(numDyeDopants, 1);
+dyeTauRad = zeros(numDyeDopants, 1);
+dyeTauNR = zeros(numDyeDopants, 1);
 dyeSigmaabs = zeros(numDyeDopants, numll);
 dyeSigmaemi = zeros(numDyeDopants, numll);
 dyeWnsp = zeros(numDyeDopants, numll);
 
 for m = 1:numDyeDopants
-    [dyeTau(m), sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dyeDopant(m));
+    [dyeTauRad(m), sigmaabsFun, sigmaemiFun, dyeTauNR(m)] = getDyeDopantAttributes(dyeDopant(m));
     
     dyeSigmaabs(m, :) = sigmaabsFun(ll);
     dyeSigmaemi(m, :) = sigmaemiFun(ll);
@@ -79,7 +81,12 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll, solarType);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+
+beta = zeros(1, numll);
+for k = 1:numll
+%     beta(k) = calculateBetaBasic(ll(k));
+    beta(k) = calculateBetaIntegral(ll(k));
+end
 
 dyeEfficiency = zeros(numDyeDopants, numll);
 for m = 1:numDyeDopants
@@ -106,10 +113,10 @@ dyeNestconst = dyeSigmaemi./concentrationToPower;
 earthNabsconst = earthSigmaabs./concentrationToPower;
 earthNestconst = earthSigmaemi./concentrationToPower;
 Pattconst = (alfaPMMA+dyeN*dyeSigmaabs+earthN*earthSigmaabs)*dz;
-dyePNconst1 = concentrationToPower.*beta.*dyeWnsp*dz./dyeTau;
+dyePNconst1 = concentrationToPower.*beta.*dyeWnsp*dz./dyeTauRad;
 dyePNconst2 = (dyeSigmaabs+dyeSigmaemi)*dz;
 earthPNconst1 = concentrationToPower.*beta.*earthWnsp*dz./earthTauD;
-earthPNconst2 = (earthSigmaabs+earthSigmaemi)*dz;
+earthPNconst2 = earthSigmaemi*dz;
 earthPNconst3 = earthSigmaabs*dz;
 
 P = zeros(numzz, numll);
@@ -135,7 +142,7 @@ while error > 1e-8
             wabs = sum(dyeNabsconst(m, :).*evalP);
             west = sum(dyeNestconst(m, :).*evalP);
             
-            A = 1/dyeTau(m)+wabs+west;
+            A = 1/dyeTauRad(m)+1/dyeTauNR(m)+wabs+west;
             
             if j <= lightj
                 b = dyeNsolconst(m)+dyeN(m)*wabs;
@@ -151,7 +158,7 @@ while error > 1e-8
             wabs = sum(earthNabsconst(m, :).*evalP);
             west = sum(earthNestconst(m, :).*evalP);
 
-            A = [1/earthTauT(m)+earthwTD(m)+wabs -earthwDT(m)+wabs ; -earthwTD(m) 1/earthTauD(m)+earthwDT(m)+west];
+            A = [1/earthTauT(m)+earthwTD(m)+wabs -earthwDT(m) ; -earthwTD(m) 1/earthTauD(m)+earthwDT(m)+west];
 
             if j <= lightj
                 b = [earthNsolconst(m)+earthN(m)*wabs ; 0];

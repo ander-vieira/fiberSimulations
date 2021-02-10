@@ -25,7 +25,7 @@ lightj = lightL/dz;
 ll = minlambda:dlambda:maxlambda;
 numll = length(ll);
 
-[tau, sigmaabsFun, sigmaemiFun] = getDyeDopantAttributes(dopant);
+[tauRad, sigmaabsFun, sigmaemiFun, tauNR] = getDyeDopantAttributes(dopant);
 sigmaabs = sigmaabsFun(ll);
 sigmaemi = sigmaemiFun(ll);
 wnsp = sigmaemi / sum(sigmaemi);
@@ -35,8 +35,12 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
-% beta = (ncore - 1)./(2*ncore);
+
 beta = zeros(1, numll);
+for k = 1:numll
+%     beta(k) = calculateBetaBasic(ll(k));
+    beta(k) = calculateBetaIntegral(ll(k));
+end
 
 efficiency = zeros(1, numll);
 for k = 1:numll
@@ -44,7 +48,6 @@ for k = 1:numll
 %     efficiency(k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
 %     efficiency(k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
     efficiency(k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, .98, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
-    beta(k) = calculateBetaIntegral(ll(k));
 end
 
 % Precalculated constants
@@ -53,7 +56,7 @@ Nsolconst = diameter*sum(isol*dlambda.*efficiency./concentrationToPower);
 Nabsconst = sigmaabs./concentrationToPower;
 Nestconst = sigmaemi./concentrationToPower;
 Pattconst = (alfaPMMA+N*sigmaabs)*dz;
-PNconst1 = concentrationToPower.*beta.*wnsp*dz/tau;
+PNconst1 = concentrationToPower.*beta.*wnsp*dz/tauRad;
 PNconst2 = (sigmaabs+sigmaemi)*dz;
 
 P = zeros(numzz, numll);
@@ -74,7 +77,7 @@ while error > 1e-8
         wabs = sum(Nabsconst.*evalP);
         west = sum(Nestconst.*evalP);
         
-        A = 1/tau+wabs+west;
+        A = 1/tauRad+1/tauNR+wabs+west;
         
         if j <= lightj
             b = Nsolconst+N*wabs;

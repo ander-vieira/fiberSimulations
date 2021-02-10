@@ -93,10 +93,10 @@ datos = [               % primera columna lambda (nm), segunda columna sigma emi
        695.51   5.6822e-24
         700         0
     751               0
-    752               0
-    753               0
-    754               0
-    755               0
+    760               0
+    765               0
+    770              0
+    775               0
     ];
 %Poner los datos en valores absolutos:
 %sigmapico = 1.5e-20;      % Valor al que hay que normalizar
