@@ -21,14 +21,18 @@ while error > 1e-5
     % Get expected power spectrum shape
     [normalizedFun, J] = solveSystem(ll, N, lightL, darkL, sigmaabs, alfaPMMA, beta, w, dw);
     
-    deltaW = (J\(normalizedP'-normalizedFun))';
+    A = [J'*J ones(length(ll),1) ; ones(1, length(ll)) 0];
+    
+    b = [J'*(normalizedP'-normalizedFun) ; 0];
+    
+    c = (A\b)';
+    deltaW = c(1:end-1);
     
     % Calculate relative error in each step
-    error = max(abs(deltaW./w));
+    error = norm(deltaW);
     
     % Calculate new values for the WNSP
-    w = w + deltaW;
-    w = w/sum(w);
+    w = w + 0.1*deltaW;
 end
 
 % Remove negative values
