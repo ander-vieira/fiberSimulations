@@ -35,7 +35,13 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+
+beta = zeros(1, numll);
+Kz = zeros(1, numll);
+for k = 1:numll
+%     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
+    [beta(k), Kz(k)] = geometricalParamsI(ncore(k));
+end
 
 efficiency = zeros(1, numll);
 for k = 1:numll
@@ -48,12 +54,12 @@ end
 % Precalculated constants
 concentrationToPower = pi*h*c*diameter^2./(4*ll);
 Nsolconst = diameter*sum(isol*dlambda.*efficiency./concentrationToPower);
-Nabsconst = sigmaabs./concentrationToPower;
-Nestconst = sigmaemi./concentrationToPower;
-Pattconst = (alfaPMMA+N*sigmaabs)*dz;
+Nabsconst = Kz.*sigmaabs./concentrationToPower;
+Nestconst = Kz.*sigmaemi./concentrationToPower;
+Pattconst = Kz.*(alfaPMMA+N*sigmaabs)*dz;
 PNconst1 = concentrationToPower.*beta.*wnsp*dz/tauD;
-PNconst2 = (sigmaabs+sigmaemi)*dz;
-PNconst3 = sigmaabs*dz;
+PNconst2 = Kz.*(sigmaabs+sigmaemi)*dz;
+PNconst3 = Kz.*sigmaabs*dz;
 
 P = zeros(numzz, numll);
 Pleft = zeros(numzz, numll);
@@ -67,34 +73,6 @@ while error > 1e-9
     Pleft(end, :) = zeros(1, numll);
     
     previousP = P(end, :);
-    
-    % Update NT and ND
-%     for j = 1:numzz-1
-%         evalNT = NT(j);
-%         evalND = ND(j);
-%         
-%         if j <= lightj
-%             NT(j) = Nsolconst;
-%         else
-%             NT(j) = 0;
-%         end
-%         
-%         for k = 1:numll
-%             evalP = (P(j, k)+P(j+1, k)+Pleft(j, k)+Pleft(j+1, k))/2;
-%             
-%             NT(j) = NT(j) + NTPconst1(k)*evalP;
-%             NT(j) = NT(j) - NTPconst2(k)*evalP*evalNT;
-%             NT(j) = NT(j) - NTPconst3(k)*evalP*evalND;
-%         end
-%         
-%         ND(j) = NDTconst*NT(j);
-%         
-%         for k = 1:numll
-%             evalP = (P(j, k)+P(j+1, k)+Pleft(j, k)+Pleft(j+1, k))/2;
-%             
-%             ND(j) = ND(j) - NDPconst1(k)*evalP*evalND;
-%         end
-%     end
     
     % Update NT and ND
     for j = 1:numzz-1

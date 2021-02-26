@@ -48,9 +48,10 @@ isol = solarIrradianceSpline(ll);
 ncore = refractionIndexPMMA(ll);
 
 beta = zeros(1, numll);
+Kz = zeros(1, numll);
 for k = 1:numll
-%     beta(k) = calculateBetaBasic(ll(k));
-    beta(k) = calculateBetaIntegral(ll(k));
+%     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
+    [beta(k), Kz(k)] = geometricalParamsI(ncore(k));
 end
 
 efficiency = zeros(numDopants, numll);
@@ -67,12 +68,12 @@ end
 concentrationToPower = pi*h*c*diameter^2./(4*ll);
 Nespconst = dt./tauRad+dt./tauNR;
 Nsolconst = sum(isol*dlambda*dt*diameter.*efficiency./concentrationToPower, 2);
-Nabsconst = sigmaabs*dt./concentrationToPower;
-Nestconst = sigmaemi*dt./concentrationToPower;
+Nabsconst = Kz.*sigmaabs*dt./concentrationToPower;
+Nestconst = Kz.*sigmaemi*dt./concentrationToPower;
 Ppropconst = ncore*dz/(c*dt);
-Pattconst = alfaPMMA*dz;
-Pabsconst = sigmaabs*dz;
-Pestconst = sigmaemi*dz;
+Pattconst = Kz.*alfaPMMA*dz;
+Pabsconst = Kz.*sigmaabs*dz;
+Pestconst = Kz.*sigmaemi*dz;
 Pespconst = concentrationToPower.*beta.*wnsp*dz./tauRad;
 
 P = zeros(2, numzz, numll);

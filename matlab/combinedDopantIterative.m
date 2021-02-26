@@ -83,9 +83,10 @@ isol = solarIrradianceSpline(ll, solarType);
 ncore = refractionIndexPMMA(ll);
 
 beta = zeros(1, numll);
+Kz = zeros(1, numll);
 for k = 1:numll
-%     beta(k) = calculateBetaBasic(ll(k));
-    beta(k) = calculateBetaIntegral(ll(k));
+%     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
+    [beta(k), Kz(k)] = geometricalParamsI(ncore(k));
 end
 
 dyeEfficiency = zeros(numDyeDopants, numll);
@@ -108,16 +109,16 @@ end
 concentrationToPower = pi*h*c*diameter^2./(4*ll);
 dyeNsolconst = diameter*sum(isol*dlambda.*dyeEfficiency./concentrationToPower, 2);
 earthNsolconst = diameter*sum(isol*dlambda.*earthEfficiency./concentrationToPower, 2);
-dyeNabsconst = dyeSigmaabs./concentrationToPower;
-dyeNestconst = dyeSigmaemi./concentrationToPower;
-earthNabsconst = earthSigmaabs./concentrationToPower;
-earthNestconst = earthSigmaemi./concentrationToPower;
-Pattconst = (alfaPMMA+dyeN*dyeSigmaabs+earthN*earthSigmaabs)*dz;
+dyeNabsconst = Kz.*dyeSigmaabs./concentrationToPower;
+dyeNestconst = Kz.*dyeSigmaemi./concentrationToPower;
+earthNabsconst = Kz.*earthSigmaabs./concentrationToPower;
+earthNestconst = Kz.*earthSigmaemi./concentrationToPower;
+Pattconst = Kz.*(alfaPMMA+dyeN*dyeSigmaabs+earthN*earthSigmaabs)*dz;
 dyePNconst1 = concentrationToPower.*beta.*dyeWnsp*dz./dyeTauRad;
-dyePNconst2 = (dyeSigmaabs+dyeSigmaemi)*dz;
+dyePNconst2 = Kz.*(dyeSigmaabs+dyeSigmaemi)*dz;
 earthPNconst1 = concentrationToPower.*beta.*earthWnsp*dz./earthTauD;
-earthPNconst2 = earthSigmaemi*dz;
-earthPNconst3 = earthSigmaabs*dz;
+earthPNconst2 = Kz.*earthSigmaemi*dz;
+earthPNconst3 = Kz.*earthSigmaabs*dz;
 
 P = zeros(numzz, numll);
 Pleft = zeros(numzz, numll);

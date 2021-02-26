@@ -1,5 +1,5 @@
 function [lightPout, electricPout] = earthDopantFdm(dopant, N, diameter, lightL, darkL)
-%ONEDOPANTFDM Summary of this function goes here
+%EARTHDOPANTFDM Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;
@@ -36,7 +36,13 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+
+beta = zeros(1, numll);
+Kz = zeros(1, numll);
+for k = 1:numll
+%     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
+    [beta(k), Kz(k)] = geometricalParamsI(ncore(k));
+end
 
 efficiency = zeros(1, numll);
 for k = 1:numll
@@ -51,14 +57,13 @@ concentrationToPower = pi*h*c*diameter^2./(4*ll);
 NTespconst = dt*wDT/(wDT+wTD)/tauT;
 NDespconst = dt*wTD/(wDT+wTD)/tauD;
 Nsolconst = sum(isol*dlambda*dt*diameter.*efficiency./concentrationToPower);
-Nabsconst = sigmaabs*dt./concentrationToPower;
-Nestconst = sigmaemi*wTD/(wDT+wTD)*dt./concentrationToPower;
+Nabsconst = Kz.*sigmaabs*dt./concentrationToPower;
+Nestconst = Kz.*sigmaemi*wTD/(wDT+wTD)*dt./concentrationToPower;
 Ppropconst = ncore*dz/(c*dt);
-Pattconst = alfaPMMA*dz;
-Pabsconst1 = sigmaabs*dz;
-Pabsconst2 = wDT/(wDT+wTD)*sigmaabs*dz;
-Pestconst = sigmaemi*wTD/(wDT+wTD)*dz;
-% Pespconst = concentrationToPower.*beta.*wnsp*dz*wTD/(wDT+wTD)/tauD+concentrationToPower.*beta.*wnsp*dz*wDT/(wDT+wTD)/tauT;
+Pattconst = Kz.*alfaPMMA*dz;
+Pabsconst1 = Kz.*sigmaabs*dz;
+Pabsconst2 = Kz.*wDT/(wDT+wTD)*sigmaabs*dz;
+Pestconst = Kz.*sigmaemi*wTD/(wDT+wTD)*dz;
 Pespconst = concentrationToPower.*beta.*wnsp*dz*wTD/(wDT+wTD)/tauD;
 
 P = zeros(2, numzz, numll);

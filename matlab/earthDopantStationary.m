@@ -29,7 +29,13 @@ alfaPMMA = valuesalfaPMMA(ll);
 isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
-beta = (ncore - 1)./(2*ncore);
+
+beta = zeros(1, numll);
+Kz = zeros(1, numll);
+for k = 1:numll
+%     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
+    [beta(k), Kz(k)] = geometricalParamsI(ncore(k));
+end
 
 qD = wTD/(wTD+wDT+1/tauD);
 eqTau  = 1/((1-qD)/tauT+qD/tauD);
@@ -51,9 +57,9 @@ G = zeros(M);
 for i = 1:M
     for j = 1:M
         if(i == j)
-            G(i, i) = -sigmaabs(i).*N.*(1-beta(i).*wnsp(i)*R)-alfaPMMA(i)-realmin;
+            G(i, i) = -Kz(i)*sigmaabs(i).*N.*(1-beta(i).*wnsp(i)*R)-Kz(i).*alfaPMMA(i)-realmin;
         else
-            G(i, j) = sigmaabs(j)*N*beta(i)*wnsp(i)*R*ll(j)/ll(i);
+            G(i, j) = Kz(j)*sigmaabs(j)*N*beta(i)*wnsp(i)*R*ll(j)/ll(i);
         end
     end
 end
