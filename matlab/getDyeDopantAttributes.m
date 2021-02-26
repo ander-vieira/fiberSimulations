@@ -19,8 +19,6 @@ elseif strcmp(dopant, 'C1')
 elseif strcmp(dopant, 'C6')
     tauRad = 6.8e-9; % Need to check again
     tauNR = 2.41e-8; % Calculated from quantum yield of 0.78
-%     sigmaabs = @sigmaabs_C6;
-%     sigmaemi = @sigmaemi_C6;
 %     sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_C6_2.csv", lambdas, 459e-9, 7.290817e-21/2);
 %     sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_C6.csv", lambdas+50e-9, 501e-9, 1.183142e-20*1.01768/2);
     sigmaabs = generateGaussianSigma([425.58e-9;449.42e-9;473.00e-9], [5.34569e-21;1.008615e-20;4.559433e-21], [4.36275e14;2.43868e14;1.19762e14]);
