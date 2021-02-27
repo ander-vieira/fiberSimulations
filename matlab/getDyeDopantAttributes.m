@@ -3,8 +3,8 @@ function [tauRad, sigmaabs, sigmaemi, tauNR, quenchingA, quenchingB] = getDyeDop
 if strcmp(dopant, 'RhB')
     tauRad = 4.8e-9;
     tauNR = 1; % Very large value -> quantum yield is basically 1
-    sigmaabs = @sigmaabs_RhB;
-    sigmaemi = @sigmaemi_RhB;
+    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_RhB.csv", lambdas, 559.29e-9, 3.37e-20);
+    sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_RhB.csv", lambdas, 571.08e-9, 2.4973e-20);
     quenchingA = 0; % Not known -> no quenching happens
     quenchingB = -3;
     
@@ -29,8 +29,8 @@ elseif strcmp(dopant, 'C6')
 elseif strcmp(dopant, 'LumogenRed')
     tauRad = 6e-9;
     tauNR = 1; % Very large value -> quantum yield is basically 1
-    sigmaabs = @sigmaabs_LumogenRed;
-    sigmaemi = @sigmaemi_LumogenRed;
+    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_LumR.csv", lambdas, 573.37e-9, 1.5382e-20);
+    sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_LumR.csv", lambdas, 600.85e-9, 1.532e-20);
     quenchingA = 7.3e9;
     quenchingB = -3.92;
     
@@ -47,8 +47,8 @@ elseif strcmp(dopant, 'LumogenOrange')
 else % Default is Rh6G
     tauRad = 4.8e-9;
     tauNR = 1; % Very large value -> quantum yield is basically 1
-    sigmaabs = @sigmaabs_Rh6G;
-    sigmaemi = @sigmaemi_Rh6G;
+    sigmaabs = @(lambdas) readLambdaCsv("../csv/sigmaabs_Rh6G.csv", lambdas, 530.58e-9, 4.3298e-20);
+    sigmaemi = @(lambdas) readLambdaCsv("../csv/sigmaemi_Rh6G.csv", lambdas, 544.02e-9, 2.0375e-20);
 %     sigmaabs = generateGaussianSigma([508.84e-9;530.03e-9], [1.62791e-20;2.74366e-20], [4.01125e14;1.41498e14]);
 %     sigmaemi = generateGaussianSigma([541.52e-9;577.56e-9], [1.67023e-20;5.16708e-21], [1.65728e14;2.47508e14]);
     quenchingA = 7e9;
