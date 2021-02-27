@@ -26,10 +26,10 @@ Isat2 = .5e-3*diodeSurface; % A
 Tamb = 300; % Ambient temperature (K)
 thermalVoltage = kB*Tamb/electronCharge; % V
 
-responsivity = photodiodeResponsivity(ll);
+solarCellR = solarCellResponsivity(ll);
 
 % Get Iph from the incoming sunlight
-diodeCurrent = sum(lightPin .* responsivity);
+diodeCurrent = sum(lightPin .* solarCellR);
 
 % a and b are defined to simplify the equation to solve
 b2 = Isat2 / Isat1;

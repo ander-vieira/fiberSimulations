@@ -26,9 +26,9 @@ Tamb = 300; % Ambient temperature (K)
 thermalVoltage = kB*Tamb/electronCharge; % V
 fillFactor = 0.8;
 
-responsivity = photodiodeResponsivity(ll);
+solarCellR = solarCellResponsivity(ll);
 
-diodeCurrent = sum(lightPin .* responsivity); % I
+diodeCurrent = sum(lightPin .* solarCellR); % I
 openCircuitVoltage = 2*thermalVoltage*log((sqrt((2*Isat1+Isat2)^2+4*Isat1*diodeCurrent)-Isat2)/(2*Isat1)); % V
 
 electricPout = diodeCurrent*openCircuitVoltage*fillFactor; % W
