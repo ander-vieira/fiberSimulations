@@ -40,7 +40,7 @@ for m = 1:numDopants
     wnsp(m, :) = sigmaemi(m, :)/sum(sigmaemi(m, :));
 end
 
-alfaPMMA = valuesalfaPMMA(ll);
+alfaPMMA = attenuationPMMA(ll);
 
 isol = solarIrradianceSpline(ll);
 

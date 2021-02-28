@@ -30,7 +30,7 @@ solarConstant = solarConstant*dlambda; % W/m^2
 emittedDistribution = sigmaemiFun(ll);
 emittedDistribution = emittedDistribution/sum(emittedDistribution);
 sigmaabsValues = sigmaabsFun(ll);
-alfaPMMAValues = valuesalfaPMMA(ll);
+alfaPMMAValues = attenuationPMMA(ll);
 
 % Initial values
 position = zeros(2, 3);

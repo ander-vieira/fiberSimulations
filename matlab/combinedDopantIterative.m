@@ -76,7 +76,7 @@ for m = 1:numEarthDopants
     earthWnsp(m, :) = earthSigmaemi(m, :)/sum(earthSigmaemi(m, :));
 end
 
-alfaPMMA = valuesalfaPMMA(ll);
+alfaPMMA = attenuationPMMA(ll);
 
 isol = solarIrradianceSpline(ll, solarType);
 

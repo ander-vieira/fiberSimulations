@@ -25,7 +25,7 @@ sigmaabs = sigmaabsFun(ll);
 sigmaemi = sigmaemiFun(ll);
 wnsp = sigmaemi / sum(sigmaemi);
 isol = solarIrradianceSpline(ll);
-alfaPMMA = valuesalfaPMMA(ll);
+alfaPMMA = attenuationPMMA(ll);
 
 beta = (ncore - 1)./(2*ncore);
 
