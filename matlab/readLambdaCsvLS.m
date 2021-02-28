@@ -1,4 +1,4 @@
-function values = readLambdaCsvLS(csvFile, lambdas, referenceLambda, referenceValue)
+function result = readLambdaCsvLS(csvFile, referenceLambda, referenceValue)
 %READLAMBDACSVLS Read a function of wavelength from a CSV file
 %   Ported from sigmaabs_Rh6G.m (2021-02-03), original author Felipe Jiménez
 %   Reads a CSV file for lambda:value (x:y) pairs
@@ -25,11 +25,15 @@ rawValues = rawData(:, 2);
 % Scale data using the reference values
 rawValues = rawValues*referenceValue/interpolateLS(rawLambdas, rawValues, referenceLambda);
 
-% "Interpolate" for each individual lambda
-values = zeros(1, length(lambdas));
-for i = 1:length(lambdas)
-    values(i) = interpolateLS(rawLambdas, rawValues, lambdas(i));
+function values = resultFun(lambdas)
+    % "Interpolate" for each individual lambda
+    values = zeros(1, length(lambdas));
+    for i = 1:length(lambdas)
+        values(i) = interpolateLS(rawLambdas, rawValues, lambdas(i));
+    end
 end
+
+result = @resultFun;
 
 end
 

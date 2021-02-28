@@ -1,4 +1,4 @@
-function values = readLambdaCsv(csvFile, lambdas, referenceLambda, referenceValue)
+function result = readLambdaCsv(csvFile, referenceLambda, referenceValue)
 %READLAMBDACSV Read a function of wavelength from a CSV file
 %   Reads a CSV file for lambda:value (x:y) pairs
 %   and uses those values to perform spline interpolation
@@ -33,14 +33,19 @@ windowSize = 3;
 window = exp(-(-windowSize:windowSize)'.^2/9);
 window = window/sum(window);
 
+function values = resultFun(lambdas)
+
 % Spline interpolation N times, then averages all of them (low pass filter)
-lambdaM = (-windowSize:windowSize)'*dlambda.*ones(1, length(lambdas))+lambdas;
-valuesM = spline(rawLambdas, rawValues, lambdaM);
+    lambdaM = (-windowSize:windowSize)'*dlambda.*ones(1, length(lambdas))+lambdas;
+    valuesM = spline(rawLambdas, rawValues, lambdaM);
 
-% Remove negative values (!) and values outside the range of the CSV file
-valuesM = valuesM.*(valuesM>=0).*(lambdaM>=min(rawLambdas)).*(lambdaM<=max(rawLambdas));
+    % Remove negative values (!) and values outside the range of the CSV file
+    valuesM = valuesM.*(valuesM>=0).*(lambdaM>=min(rawLambdas)).*(lambdaM<=max(rawLambdas));
 
-values = sum(valuesM.*window, 1);
+    values = sum(valuesM.*window, 1);
+end
+
+result = @resultFun;
 
 end
 
