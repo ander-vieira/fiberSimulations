@@ -6,14 +6,14 @@ function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, 
 
 tic;
 
-M = 200000; % Number of photons to simulate
+M = 1000000; % Number of photons to simulate
 
 rng('shuffle');
 
 minlambda = 250e-9;
-dlambda = 1e-9;
+dlambda = 2e-9;
 maxlambda = 750e-9;
-da = 5e-6;
+da = 5e-5;
 
 incidenceAngle = deg2rad(incidenceAngleDegrees);
 rotationMatrix = [1 0 0 ; 0 cos(incidenceAngle) -sin(incidenceAngle) ; 0 sin(incidenceAngle) cos(incidenceAngle)]';
@@ -26,9 +26,11 @@ ll = minlambda:dlambda:maxlambda;
 solarDistribution = solarIrradianceSpline(ll);
 solarConstant = sum(solarDistribution);
 solarDistribution = solarDistribution/solarConstant;
-solarConstant = solarConstant*dlambda;
+solarConstant = solarConstant*dlambda; % W/m^2
 emittedDistribution = sigmaemiFun(ll);
 emittedDistribution = emittedDistribution/sum(emittedDistribution);
+sigmaabsValues = sigmaabsFun(ll);
+alfaPMMAValues = valuesalfaPMMA(ll);
 
 % Initial values
 position = zeros(2, 3);
@@ -45,9 +47,9 @@ if nargout == 0
 end
 for i = 1:M
     % Generate random photon from incident sunlight
-    lambda = generateDistributedLambda(ll, solarDistribution);
-    alfaPMMA = valuesalfaPMMA(lambda);
-    sigmaabs = sigmaabsFun(lambda);
+    k = generateDistributedLambda(ll, solarDistribution);
+    alfaPMMA = alfaPMMAValues(k);
+    sigmaabs = sigmaabsValues(k);
     photonPower = incomingPower/M;
     
     % Get initial position of photon (directly above fiber, random)
@@ -60,7 +62,7 @@ for i = 1:M
         position(1, :) = position(2, :);
         
         % Get refraction index AND refraction gradient (for GI fibers)
-        [prevInFiber, prevN, ~] = getRefractionIndex(position(1, :), diameter, lambda);
+        [prevInFiber, prevN, ~] = getRefractionIndex(position(1, :), diameter, ll(k));
         
         % Distance interval travelled 
         ds = prevN*da;
@@ -73,7 +75,7 @@ for i = 1:M
         % Calculate new position
         position(2, :) = position(1, :) + direction*ds;
         
-        [inFiber, n] = getRefractionIndex(position(2, :), diameter, lambda);
+        [inFiber, n] = getRefractionIndex(position(2, :), diameter, ll(k));
         
         if prevInFiber ~= inFiber
             % Refraction in air-fiber interface
@@ -130,7 +132,7 @@ for i = 1:M
             position(2, :) = position(2, :) + direction*prevN*da;
             ds = ds + prevN*da;
             
-            [inFiber, ~] = getRefractionIndex(position(2, :), diameter, lambda);
+            [inFiber, ~] = getRefractionIndex(position(2, :), diameter, ll(k));
         end
         
         % Photon leaves the fiber (and is lost)
@@ -156,13 +158,13 @@ for i = 1:M
             direction = [sqrt(1-rand2^2)*cos(rand1) sqrt(1-rand2^2)*sin(rand1) rand2];
             
             % Generate new wavelength after emission
-            oldLambda = lambda;
-            lambda = generateDistributedLambda(ll, emittedDistribution);
-            alfaPMMA = valuesalfaPMMA(lambda);
-            sigmaabs = sigmaabsFun(lambda);
+            oldLambda = ll(k);
+            k = generateDistributedLambda(ll, emittedDistribution);
+            alfaPMMA = alfaPMMAValues(k);
+            sigmaabs = sigmaabsValues(k);
             
             % Change photon power (Stokes shift loss)
-            photonPower = photonPower*oldLambda/lambda;
+            photonPower = photonPower*oldLambda/ll(k);
             
             absorptions(i) = absorptions(i) + 1;
         end
@@ -171,7 +173,7 @@ for i = 1:M
         if(loopOn && inFiber && position(2, 3) >= lightL + darkL && position(1, 3) < lightL + darkL)
             finalPower = finalPower + photonPower;
             finalPhotons = finalPhotons + 1;
-            finalWavelengths(i) = lambda;
+            finalWavelengths(i) = ll(k);
             loopOn = false;
         end
         
@@ -215,16 +217,17 @@ end
 % Auxiliary functions
 
 % Using a discrete probability distribution, generate random wavelength
-function lambda = generateDistributedLambda(ll, distribution)
+function i = generateDistributedLambda(ll, distribution)
     randomNumber = rand();
+    totalSum = 0;
     
     for i = 1:length(ll)
-        if(randomNumber < sum(distribution(1:i)))
+        totalSum = totalSum + distribution(i);
+        
+        if(randomNumber < totalSum)
             break;
         end
     end
-    
-    lambda = ll(i);
 end
 
 % Get refraction index and refraction gradient for a position
