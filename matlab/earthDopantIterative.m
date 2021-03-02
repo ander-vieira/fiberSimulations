@@ -12,7 +12,7 @@ end
 c = 3e8; % Speed of light (m/s)
 h = 6.63e-34; % Planck constant (J*s)
 
-minlambda = 240e-9;
+minlambda = 340e-9;
 dlambda = 2e-9;
 maxlambda = 740e-9;
 

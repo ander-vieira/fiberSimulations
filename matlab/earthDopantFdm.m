@@ -62,7 +62,7 @@ Nestconst = Kz.*sigmaemi*wTD/(wDT+wTD)*dt./concentrationToPower;
 Ppropconst = ncore*dz/(c*dt);
 Pattconst = Kz.*alfaPMMA*dz;
 Pabsconst1 = Kz.*sigmaabs*dz;
-Pabsconst2 = Kz.*wDT/(wDT+wTD)*sigmaabs*dz;
+Pabsconst2 = Kz.*sigmaabs*wDT/(wDT+wTD)*dz;
 Pestconst = Kz.*sigmaemi*wTD/(wDT+wTD)*dz;
 Pespconst = concentrationToPower.*beta.*wnsp*dz*wTD/(wDT+wTD)/tauD;
 
