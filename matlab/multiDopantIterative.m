@@ -160,6 +160,7 @@ if nargout == 0
     fprintf('Output power of solar cell: %g uW\n', electricPout*1e6);
     fprintf('Estimated error of approximation: %g\n', estimatedError);
         
+    % Plot power spectrum
     figure(1);
     plot(ll*1e9, Pout*1e-3/dlambda);
     title('Power spectrum at end of fiber (FDM method)');

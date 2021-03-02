@@ -80,6 +80,12 @@ P = zeros(2, numzz, numll);
 Pleft = zeros(2, numzz, numll);
 N2 = zeros(2, numzz-1, numDopants);
 
+% Samples along the time axis for plot over time
+sampleDT = 0.3e-9;
+numSamples = 10;
+curSamples = 1;
+Psamples = zeros(numSamples, 1);
+
 i = 0;
 imin = 100;
 error = 0;
@@ -158,6 +164,20 @@ while i < imin || error > 1e-8
         end
     end
     
+    % Take the time axis samples (dynamic array allocation)
+    if(mod(i, floor(sampleDT/dt)) == 0)
+        curSamples = curSamples + 1;
+        
+        if(curSamples > numSamples)
+            % Expand array to double the current size
+            Psamples = [Psamples ; zeros(numSamples, 1)];
+            numSamples = numSamples*2;
+        end
+        
+        % Sample the total output power at end of fiber
+        Psamples(curSamples) = sum(P(2, end, :));
+    end
+    
     i = i + 1;
     % Calculate the error (for the loop condition)
     error = max(abs((P(2, end, :)-P(1, end, :))./(P(2, end, :)+realmin)));
@@ -179,12 +199,18 @@ if nargout == 0
     fprintf('Output power of fiber: %g uW\n', lightPout*1e6);
     fprintf('Output power of solar cell: %g uW\n', electricPout*1e6);
     fprintf('Estimated error of approximation: %g\n', estimatedError);
-        
+    
+    % Plot power spectrum
     figure(1);
     plot(ll*1e9, Pout*1e-3/dlambda);
     title('Power spectrum at end of fiber (FDM method)');
     xlabel('\lambda (nm)');
     ylabel('Power spectrum (\muW/nm)');
+    
+    % Plot over time axis
+    figure(2);
+    sampleTT = sampleDT*(0:(curSamples-1));
+    plot(sampleTT*1e9, Psamples(1:curSamples)*1e6);
 end
 
 end
