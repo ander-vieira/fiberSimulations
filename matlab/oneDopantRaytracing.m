@@ -33,8 +33,8 @@ rotationMatrix = [1 0 0 ; 0 cos(incidenceAngle) -sin(incidenceAngle) ; 0 sin(inc
 [tauRad, sigmaabsFun, sigmaemiFun, tauNR] = getDyeDopantAttributes(dopant);
 
 % Get probability distributions for sunlight photons and emitted photons
-solarDistribution = solarIrradianceSpline(ll);
-solarConstant = sum(solarDistribution);
+solarDistribution = solarIrradianceSpline(ll); % W/m^3
+solarConstant = sum(solarDistribution); % W/m^3
 solarDistribution = solarDistribution/solarConstant;
 solarConstant = solarConstant*dlambda; % W/m^2
 sigmaabsValues = sigmaabsFun(ll);
