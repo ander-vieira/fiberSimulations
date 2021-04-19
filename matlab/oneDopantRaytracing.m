@@ -1,4 +1,4 @@
-function [finalPower] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, incidenceAngleDegrees)
+function [Pout] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, incidenceAngleDegrees)
 %ONEDOPANTRAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
@@ -23,6 +23,7 @@ minlambda = 250e-9;
 dlambda = 2e-9;
 maxlambda = 750e-9;
 ll = minlambda:dlambda:maxlambda;
+numll = length(ll);
 
 da = 5e-5;
 
@@ -49,8 +50,8 @@ conversionN2 = 4*ll/(pi*h*c*diameter^2*dz)/(1/tauRad+1/tauNR); % m^-3/W
 % Initial values
 N2 = zeros(1, numzz);
 incomingPower = solarConstant*diameter*lightL*cos(incidenceAngle); % W
-minimumPower = incomingPower/M/100;
-finalPower = 0; % W
+minimumPower = incomingPower/M*1e-3;
+Pout = zeros(1, numll); % W
 totalPhotons = 0;
 finalPhotons = 0;
 runawayPhotons = 0;
@@ -164,7 +165,7 @@ function runPhoton(position, direction, k, photonPower)
         if(loopOn && inFiber && position(2, 3) >= lightL + darkL && position(1, 3) < lightL + darkL)
             loopOn = false;
             
-            finalPower = finalPower + photonPower;
+            Pout(k) = Pout(k) + photonPower;
             finalPhotons = finalPhotons + 1;
         end
         
@@ -221,7 +222,7 @@ function runPhoton(position, direction, k, photonPower)
 end
 
 if nargout == 0
-    fprintf('i = 000000');
+    fprintf('i = 0000000');
 end
 for i = 1:M
     % Generate random photon from incident sunlight
@@ -239,7 +240,7 @@ for i = 1:M
     runPhoton(position, direction, k, photonPower);
     
     if nargout == 0 && mod(i, 5000) == 0
-        fprintf('\b\b\b\b\b\b%06d', i);
+        fprintf('\b\b\b\b\b\b\b%07d', i);
     end
 end
 if nargout == 0
@@ -248,11 +249,18 @@ end
 
 if nargout == 0
     fprintf('Simulation time: %.1f s\n', toc());
-    fprintf('Output power of fiber: %g uW\n', finalPower*1e6);
+    fprintf('Output power of fiber: %g uW\n', sum(Pout)*1e6);
     fprintf('Photons reaching output: %d/%d\n', finalPhotons, totalPhotons);
     fprintf('Photons leaving the fiber: %d/%d\n', runawayPhotons, totalPhotons);
     fprintf('Photons absorbed by PMMA: %d/%d\n', PMMAPhotons, totalPhotons);
     fprintf('Stimulated emission photons: %d/%d\n', stimulatedPhotons, totalPhotons);
+    
+    % Plot power spectrum
+    figure(1);
+    plot(ll*1e9, Pout*1e-3/dlambda);
+    title('Power spectrum at end of fiber (FDM method)');
+    xlabel('\lambda (nm)');
+    ylabel('Power spectrum (\muW/nm)');
 end
 
 end
