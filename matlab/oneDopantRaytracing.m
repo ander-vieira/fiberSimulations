@@ -1,4 +1,4 @@
-function [Pout] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, incidenceAngleDegrees)
+function [Pout] = oneDopantRaytracing(dopant, N, diameter, ~, lightL, darkL, incidenceAngleDegrees)
 %ONEDOPANTRAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
@@ -101,11 +101,12 @@ function [ds, medium] = getRefractionPoint(position, direction)
     beta = (direction(1)*position(1, 1)+direction(2)*position(1, 2))/(direction(1)^2+direction(2)^2);
     gamma = (position(1, 1)^2+position(1, 2)^2-diameter^2/4)/(direction(1)^2+direction(2)^2);
     
-    if beta > 0
-        ds = sqrt(beta^2-gamma)-beta;
+    dsList = [sqrt(beta^2-gamma)-beta -sqrt(beta^2-gamma)-beta];
+    ds = min(dsList(imag(dsList) == 0 & dsList > 0));
+    
+    if ds == dsList(1)
         medium = 1;
     else
-        ds = -sqrt(beta^2-gamma)-beta;
         medium = 0;
     end
 end
@@ -141,7 +142,7 @@ function runPhoton(position, direction, k, photonPower)
         if prevMedium ~= medium
             % Refraction in an interphase
             
-            boundaryDistance = 0.01*(1+rand())*da;
+            boundaryDistance = 0.01*da;
             
             % Calculate intersection with fiber's edge
             [ds, medium] = getRefractionPoint(position, direction);
