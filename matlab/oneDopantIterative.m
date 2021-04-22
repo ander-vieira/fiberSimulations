@@ -12,9 +12,8 @@ end
 c = 3e8; % Speed of light (m/s)
 h = 6.63e-34; % Planck constant (J*s)
 
-minlambda = 240e-9;
 dlambda = 2e-9;
-maxlambda = 740e-9;
+[minLambda, maxLambda] = getLambdaRanges(dopant, dlambda);
 
 dz = 5e-5; % m
 
@@ -22,7 +21,7 @@ zz = 0:dz:(lightL+darkL);
 numzz = length(zz);
 lightj = lightL/dz;
 
-ll = minlambda:dlambda:maxlambda;
+ll = minLambda:dlambda:maxLambda;
 numll = length(ll);
 
 [tauRad, sigmaabsFun, sigmaemiFun, tauNR] = getDyeDopantAttributes(dopant);
