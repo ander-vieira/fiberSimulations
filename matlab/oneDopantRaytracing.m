@@ -19,10 +19,9 @@ dz = 1e-4;
 zz = 0:dz:(lightL+darkL);
 numzz = length(zz);
 
-minlambda = 250e-9;
 dlambda = 2e-9;
-maxlambda = 750e-9;
-ll = minlambda:dlambda:maxlambda;
+[minLambda, maxLambda] = getLambdaRanges(dopant, dlambda);
+ll = minLambda:dlambda:maxLambda;
 numll = length(ll);
 
 da = 5e-5;
