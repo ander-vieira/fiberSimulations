@@ -6,7 +6,7 @@ function [Pout] = oneDopantRaytracing(dopant, N, diameter, lightL, darkL, incide
 
 tic;
 
-M = 200000; % Number of photons to simulate
+M = 1000000; % Number of photons to simulate
 
 rng('shuffle');
 
@@ -24,7 +24,7 @@ dlambda = 5e-9;
 ll = minLambda:dlambda:maxLambda;
 numll = length(ll);
 
-da = 5e-5;
+da = 1e-5;
 
 % Rotation due to sunlight incidence angle
 incidenceAngle = deg2rad(incidenceAngleDegrees);
@@ -49,7 +49,7 @@ conversionN2 = 4*ll/(pi*h*c*diameter^2*dz)/(1/tauRad+1/tauNR); % m^-3/W
 % Initial values
 N2 = zeros(1, numzz);
 incomingPower = solarConstant*diameter*lightL*cos(incidenceAngle); % W
-minimumPower = incomingPower/M*1e-3;
+minimumPower = incomingPower/M*0.01;
 Pout = zeros(1, numll); % W
 totalPhotons = 0;
 finalPhotons = 0;
@@ -131,7 +131,7 @@ function runPhoton(position, direction, k, photonPower)
         
         % Distance interval travelled 
         ds = prevNIndex*da;
-
+        
         % Calculate new position
         position(2, :) = position(1, :) + direction*ds;
         
@@ -139,12 +139,14 @@ function runPhoton(position, direction, k, photonPower)
         medium = getMedium(position(2, :));
         
         if prevMedium ~= medium
-            % Refraction in air-fiber interphase
+            % Refraction in an interphase
+            
+            boundaryDistance = 0.01*(1+rand())*da;
             
             % Calculate intersection with fiber's edge
             [ds, medium] = getRefractionPoint(position, direction);
             nIndex = getMediumParams(medium, k);
-
+            
             position(2, :) = position(1, :) + direction*ds;
             
             % Get normal vector of fiber surface
@@ -181,15 +183,12 @@ function runPhoton(position, direction, k, photonPower)
                 cosI = direction*normalVector';
                 cosT = newDirection*normalVector';
                 fresnelR = (((prevNIndex*cosI-nIndex*cosT)/(prevNIndex*cosI+nIndex*cosT))^2+((prevNIndex*cosT-nIndex*cosI)/(prevNIndex*cosT+nIndex*cosI))^2)/2;
-                fresnelT = 1-fresnelR;
-                
-                % Refracted power kept in current photon
-                photonPower = photonPower*fresnelT;
-                
-                % Generate new photon with reflected part of power
-                reflectedPower = photonPower*fresnelR;
-                if reflectedPower > minimumPower
-                    runPhoton(position(2, :)+reflectedDirection*ds, reflectedDirection, k, reflectedPower);
+                                
+                % Random chance to reflect ray
+                % Better than splitting into two rays to prevent the power
+                % from being diluted
+                if rand() < fresnelR
+                    newDirection = reflectedDirection;
                 end
                 
                 % Actually change the direction
@@ -197,8 +196,8 @@ function runPhoton(position, direction, k, photonPower)
             end
             
             % Move in the new direction (out of the boundary)
-            position(2, :) = position(2, :) + direction*ds;
-            ds = 2*ds;
+            position(2, :) = position(2, :) + direction*boundaryDistance;
+            ds = ds+boundaryDistance;
             
             medium = getMedium(position(2, :));
         end
@@ -224,35 +223,39 @@ function runPhoton(position, direction, k, photonPower)
             % Photon reaches ends of fiber but isn't concentrated (and is lost)
             if(loopOn && (position(2, 3) < 0 || position(2, 3) >= lightL + darkL))
                 loopOn = false;
-
+                
                 runawayPhotons = runawayPhotons + 1;
             end
-        
+            
             % A fraction of the power is absorbed by PMMA
             photonPower = photonPower*(1-alfaPMMA*ds);
-        
+            
+            if photonPower < minimumPower
+                loopOn = false;
+            end
+            
             % Index of the N2 interval to use
             j = 1+floor((position(1, 3)+position(2, 3))/2/dz);
-
+            
             % Photon may be absorbed by dopant (and reemitted)
             if(loopOn && rand() < sigmaabs*(N-N2(j))*ds)
                 N2(j) = N2(j)+photonPower*conversionN2(k);
-
+                
                 % Generate random direction
                 rand1 = 2*pi*rand();
                 rand2 = 2*rand()-1;
                 direction = [sqrt(1-rand2^2)*cos(rand1) sqrt(1-rand2^2)*sin(rand1) rand2];
-
+                
                 % Generate new wavelength after emission
                 oldLambda = ll(k);
                 k = generateDistributedLambda(ll, emittedDistribution);
                 alfaPMMA = alfaPMMAValues(k);
                 sigmaabs = sigmaabsValues(k);
                 sigmaemi = sigmaemiValues(k);
-
+                
                 % Change photon power (Stokes shift loss)
                 photonPower = photonPower*oldLambda/ll(k);
-
+                
                 % Include non radiative decay chance
                 if rand() > quantumYield
                     loopOn = false;
@@ -284,7 +287,7 @@ for i = 1:M
     % Get initial position of photon (directly above fiber, random)
     % and direction (rotated using incidence angle)
     direction = [0 -1 0]*rotationMatrix;
-    position = [diameter*(rand()-1/2) 0 lightL*rand()]+[0 (0.5*diameter+20*da)/rotationMatrix(2, 2) 0]*rotationMatrix;
+    position = [diameter*(rand()-1/2) 0 lightL*rand()]+[0 (0.5*diameter+10*da)/rotationMatrix(2, 2) 0]*rotationMatrix;
 
     runPhoton(position, direction, k, photonPower);
     
