@@ -1,4 +1,4 @@
-function [lightPout, electricPout] = multiDopantIterative(dopant, N, diameter, lightL, darkL)
+function [lightPout, electricPout] = multiDopantIterative(dopant, N, diameter, q, lightL, darkL)
 %ONEDOPANTITERATIVE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -58,7 +58,7 @@ for m = 1:numDopants
         alfaCore = alfaPMMA(k) + sum(sigmaabs(:, k).*N') + realmin;
     %     efficiency(m, k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(m, k)*N, alfaCore);
     %     efficiency(m, k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(m, k)*N, alfaCore);
-        efficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, .98, sigmaabs(m, k)*N(m), alfaCore, alfaPMMA(k));
+        efficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, q, sigmaabs(m, k)*N(m), alfaCore, alfaPMMA(k));
     end
 end
 
@@ -162,7 +162,7 @@ if nargout == 0
     % Plot power spectrum
     figure(1);
     plot(ll*1e9, Pout*1e-3/dlambda);
-    title('Power spectrum at end of fiber (FDM method)');
+    title('Power spectrum at end of fiber (iterative method)');
     xlabel('\lambda (nm)');
     ylabel('Power spectrum (\muW/nm)');
 end

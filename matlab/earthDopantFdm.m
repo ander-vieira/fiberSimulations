@@ -1,4 +1,4 @@
-function [lightPout, electricPout] = earthDopantFdm(dopant, N, diameter, lightL, darkL)
+function [lightPout, electricPout] = earthDopantFdm(dopant, N, diameter, q, lightL, darkL)
 %EARTHDOPANTFDM Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -48,7 +48,7 @@ for k = 1:numll
     alfaCore = alfaPMMA(k) + sigmaabs(k)*N + realmin;
 %     efficiency(k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
 %     efficiency(k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
-    efficiency(k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, .98, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
+    efficiency(k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
 end
 
 % Precalculated constants

@@ -1,4 +1,4 @@
-function [lightPout, electricPout] = multiDopantFdm(dopant, N, diameter, lightL, darkL)
+function [lightPout, electricPout] = multiDopantFdm(dopant, N, diameter, q, lightL, darkL)
 %ONEDOPANTFDM Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -59,7 +59,7 @@ for m = 1:numDopants
         alfaCore = alfaPMMA(k) + sum(sigmaabs(:, k).*N') + realmin;
     %     efficiency(m, k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(m, k)*N, alfaCore);
     %     efficiency(m, k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(m, k)*N, alfaCore);
-        efficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, .98, sigmaabs(m, k)*N(m), alfaCore, alfaPMMA(k));
+        efficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, q, sigmaabs(m, k)*N(m), alfaCore, alfaPMMA(k));
     end
 end
 

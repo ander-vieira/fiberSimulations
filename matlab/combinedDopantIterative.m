@@ -1,4 +1,4 @@
-function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, earthDopant, earthN, solarType, diameter, lightL, darkL)
+function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, earthDopant, earthN, diameter, q, lightL, darkL)
 %COMBINEDDOPANTITERATIVE Simulate a POF with dye and rare earth dopants
 %   Allows multiple dye dopants AND multiple rare earth dopants
 %   Iterative method: gets the stationary state of the fiber
@@ -77,7 +77,7 @@ end
 
 alfaPMMA = attenuationPMMA(ll);
 
-isol = solarIrradianceSpline(ll, solarType);
+isol = solarIrradianceSpline(ll);
 
 ncore = refractionIndexPMMA(ll);
 
@@ -92,7 +92,7 @@ dyeEfficiency = zeros(numDyeDopants, numll);
 for m = 1:numDyeDopants
     for k = 1:numll
         alfaCore = alfaPMMA(k) + sum(dyeSigmaabs(:, k).*dyeN')+ sum(earthSigmaabs(:, k).*earthN') + realmin;
-        dyeEfficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, .98, dyeSigmaabs(m, k)*dyeN(m), alfaCore, alfaPMMA(k));
+        dyeEfficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, q, dyeSigmaabs(m, k)*dyeN(m), alfaCore, alfaPMMA(k));
     end
 end
 
@@ -100,7 +100,7 @@ earthEfficiency = zeros(numEarthDopants, numll);
 for m = 1:numEarthDopants
     for k = 1:numll
         alfaCore = alfaPMMA(k) + sum(dyeSigmaabs(:, k).*dyeN')+ sum(earthSigmaabs(:, k).*earthN') + realmin;
-        earthEfficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, .98, earthSigmaabs(m, k)*earthN(m), alfaCore, alfaPMMA(k));
+        earthEfficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, q, earthSigmaabs(m, k)*earthN(m), alfaCore, alfaPMMA(k));
     end
 end
 
