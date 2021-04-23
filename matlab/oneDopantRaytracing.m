@@ -1,4 +1,4 @@
-function [Pout] = oneDopantRaytracing(dopant, N, diameter, ~, lightL, darkL, incidenceAngleDegrees)
+function [lightPout, electricPout] = oneDopantRaytracing(dopant, N, diameter, ~, lightL, darkL, incidenceAngleDegrees)
 %ONEDOPANTRAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
@@ -303,9 +303,15 @@ end
 %%%%%%%%%
 % Display results
 
+lightPout = sum(Pout);
+
+diodeSurface = pi*diameter^2/4; % m^2
+electricPout = solarCellConversion(ll, Pout, diodeSurface);
+
 if nargout == 0
     fprintf('Simulation time: %.1f s\n', toc());
-    fprintf('Output power of fiber: %g uW\n', sum(Pout)*1e6);
+    fprintf('Output power of fiber: %g uW\n', lightPout*1e6);
+    fprintf('Output power of solar cell: %g uW\n', electricPout*1e6);
     fprintf('Photons reaching output: %d/%d\n', finalPhotons, totalPhotons);
     fprintf('Photons leaving the fiber: %d/%d\n', runawayPhotons, totalPhotons);
     fprintf('Stimulated emission photons: %d/%d\n', stimulatedPhotons, totalPhotons);
