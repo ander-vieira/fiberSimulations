@@ -13,8 +13,8 @@ end
 if length(dopants) > 1
     % Multiple dopants: call this function for each dopant, take the
     % minimum and maximum values respectively
-    minLambda = 1;
-    maxLambda = 0;
+    minLambda = 1; % Very large value
+    maxLambda = 0; % Very small value
     
     for i=1:length(dopants)
         [minLambdaI, maxLambdaI] = getLambdaRanges(dopants(i), dlambda);
