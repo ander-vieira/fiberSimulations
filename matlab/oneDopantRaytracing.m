@@ -49,7 +49,7 @@ conversionN2 = 4*ll/(pi*h*c*diameter^2*dz)/(1/tauRad+1/tauNR); % m^-3/W
 % Initial values
 N2 = zeros(1, numzz);
 incomingPower = solarConstant*diameter*lightL*cos(incidenceAngle); % W
-minimumPower = incomingPower/M*0.01;
+minimumPower = incomingPower/M*1e-5;
 Pout = zeros(1, numll); % W
 totalPhotons = 0;
 finalPhotons = 0;
@@ -130,7 +130,7 @@ function runPhoton(position, direction, k, photonPower)
         prevMedium = getMedium(position(1, :));
         prevNIndex = getMediumParams(prevMedium, k);
         
-        % Distance interval travelled 
+        % Distance interval travelled
         ds = prevNIndex*da;
         
         % Calculate new position
@@ -144,7 +144,7 @@ function runPhoton(position, direction, k, photonPower)
             
             boundaryDistance = 0.01*da;
             
-            % Calculate intersection with fiber's edge
+            % Calculate intersection with fiber's surface
             [ds, medium] = getRefractionPoint(position, direction);
             nIndex = getMediumParams(medium, k);
             
