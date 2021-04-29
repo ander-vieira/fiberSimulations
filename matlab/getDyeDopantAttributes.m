@@ -28,22 +28,30 @@ elseif strcmp(dopant, 'C6')
     
 elseif strcmp(dopant, 'LumogenRed')
     tauRad = 6e-9;
-    tauNR = 1; % Very large value -> quantum yield is basically 1
-    sigmaabs = readLambdaCsv("../csv/sigmaabs_LumR.csv", 573.37e-9, 1.5382e-20);
-    sigmaemi = readLambdaCsv("../csv/sigmaemi_LumR.csv", 600.85e-9, 1.532e-20);
+    tauNR = 1.14e-7; % Calculated from a quantum yield of 0.95
+    sigmaabs = readLambdaCsv("../csv/sigmaabs_LumR.csv", 573.37e-9, 1.9862e-20);
+    sigmaemi = readLambdaCsv("../csv/sigmaemi_LumR.csv", 600.85e-9, 2.1984e-20);
     quenchingA = 7.3e9;
     quenchingB = -3.92;
     
 elseif strcmp(dopant, 'LumogenOrange')
     tauRad = 6e-9;
     tauNR = 1.14e-7; % Calculated from a quantum yield of 0.95
-%     sigmaabs = readLambdaCsv("../csv/sigmaabs_LumO.csv", 527e-9, 2.5290e-20);
-%     sigmaemi = readLambdaCsv("../csv/sigmaemi_LumO.csv", 569e-9, 2.1047e-20);
-    sigmaabs = generateGaussianSigma([411.93e-9;452.19e-9;487.83e-9;518.51e-9;525.17e-9], [3.80555e-21;4.18278e-21;1.08276e-20;4.03081e-21;1.93256e-20], [3.98957e14;1.04652e14;1.53683e14;4.57131e14;8.45222e13]);
-    sigmaemi = generateGaussianSigma([566.04e-9;572.77e-9;620.67e-9]-20e-9, [1.23702e-20;9.58196e-21;4.79994e-21], [1.50599e14;7.84788e13;1.3689e14]);
+    sigmaabs = readLambdaCsv("../csv/sigmaabs_LumO.csv", 527e-9, 2.5290e-20);
+    sigmaemi = readLambdaCsv("../csv/sigmaemi_LumO.csv", 569e-9, 2.1047e-20);
+%     sigmaabs = generateGaussianSigma([411.93e-9;452.19e-9;487.83e-9;518.51e-9;525.17e-9], [3.80555e-21;4.18278e-21;1.08276e-20;4.03081e-21;1.93256e-20], [3.98957e14;1.04652e14;1.53683e14;4.57131e14;8.45222e13]);
+%     sigmaemi = generateGaussianSigma([566.04e-9;572.77e-9;620.67e-9]-20e-9, [1.23702e-20;9.58196e-21;4.79994e-21], [1.50599e14;7.84788e13;1.3689e14]);
     quenchingA = 0;
     quenchingB = -3;
-    
+elseif strcmp(dopant, 'LumogenYellow')
+    tauRad = 6e-9;
+    tauNR = 7.4e-8; % Calculated from a quantum yield of 0.925
+%     sigmaabs = readLambdaCsv("../csv/sigmaabs_LumY.csv", 477e-9, 2.3849e-20);
+%     sigmaemi = readLambdaCsv("../csv/sigmaemi_LumY.csv", 495e-9, 1.0178e-20);
+    sigmaabs = generateGaussianSigma([432.89e-9;446.32e-9;474.76e-9], [7.74089e-21;1.10566e-20;2.18921e-20], [3.89814e14;1.20305e14;8.76947e13]);
+    sigmaemi = generateGaussianSigma([442.75e-9;495.20e-9;537.64e-9], [1.43099e-22;9.88894e-21;8.58422e-21], [6.57363e14;1.18669e14;1.79757e14]);
+    quenchingA = 0;
+    quenchingB = -3;
 else % Default is Rh6G
     tauRad = 4.8e-9;
     tauNR = 1; % Very large value -> quantum yield is basically 1
