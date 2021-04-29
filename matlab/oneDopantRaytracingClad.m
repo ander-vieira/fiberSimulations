@@ -51,7 +51,7 @@ conversionN2 = 4*ll/(pi*h*c*diameter^2*q^2*dz)/(1/tauRad+1/tauNR); % m^-3/W
 % Initial values
 N2 = zeros(1, numzz);
 incomingPower = solarConstant*diameter*lightL*cos(incidenceAngle); % W
-minimumPower = incomingPower/M*0.01;
+minimumPower = incomingPower/M*1e-5;
 Pout = zeros(1, numll); % W
 totalPhotons = 0;
 finalPhotons = 0;
