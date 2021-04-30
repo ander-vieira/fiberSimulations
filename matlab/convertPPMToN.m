@@ -12,7 +12,18 @@ if nargin < 3
     rho = 1.18e6; % Default value: density of PMMA
 end
 
-if nargin >= 4 && reverse
+if nargin < 4
+    reverse = false;
+end
+
+if length(Nin) > 1
+    Nout = zeros(size(Nin));
+    for i=1:length(Nin)
+        Nout(i) = convertPPMToN(Nin(i), Mw, rho, reverse);
+    end
+end
+
+if reverse
     Nout = (Nin*Mw/rho/N_A)*1e6; % m^-3 to ppm
 else
     Nout = (Nin/1e6)*N_A*rho/Mw; % ppm to m^-3
