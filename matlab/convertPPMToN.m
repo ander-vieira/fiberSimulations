@@ -8,6 +8,10 @@ function Nout = convertPPMToN(Nin, Mw, rho, reverse)
 
 N_A = 6.022e23; % Avogadro's number
 
+if nargin < 3
+    rho = 1.18e6; % Default value: density of PMMA
+end
+
 if nargin >= 4 && reverse
     Nout = (Nin*Mw/rho/N_A)*1e6; % m^-3 to ppm
 else
