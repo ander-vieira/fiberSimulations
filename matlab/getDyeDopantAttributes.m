@@ -29,8 +29,10 @@ elseif strcmp(dopant, 'C6')
 elseif strcmp(dopant, 'LumogenRed')
     tauRad = 6e-9;
     tauNR = 1.14e-7; % Calculated from a quantum yield of 0.95
-    sigmaabs = readLambdaCsv("../csv/sigmaabs_LumR.csv", 573.37e-9, 1.9862e-20);
-    sigmaemi = readLambdaCsv("../csv/sigmaemi_LumR.csv", 600.85e-9, 2.1984e-20);
+%     sigmaabs = readLambdaCsv("../csv/sigmaabs_LumR.csv", 573.37e-9, 1.9862e-20);
+%     sigmaemi = readLambdaCsv("../csv/sigmaemi_LumR.csv", 600.85e-9, 2.1984e-20);
+    sigmaabs = generateGaussianSigma([440.51e-9;538.59e-9;578.67e-9], [5.51081e-21;1.23959e-20;1.48768e-20], [6.43378e14;2.24389e14;1.12255e14]);
+    sigmaemi = generateGaussianSigma([446.01e-9;598.29e-9;617.77e-9], [2.96656e-24;1.35414e-20;9.28411e-21], [3.53523e14;1.15590e14;2.48279e14]);
     quenchingA = 7.3e9;
     quenchingB = -3.92;
     
