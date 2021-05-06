@@ -27,8 +27,8 @@ ww = 2*pi*c./ll; % s^-1
 sigmaVals = sigmaFun(ll);
 
 % Interval of wavelengths to generate randomly between
-lambdaMin = 390e-9; % m
-lambdaMax = 590e-9; % m
+minLambda = 390e-9; % m
+maxLambda = 690e-9; % m
 
 % Intervals for the random deltaW
 % It determines the width of the gaussian curves
@@ -37,7 +37,7 @@ deltaWMax = 2e15; % s^-1
 
 % Number of sets of random values to generate
 baseN = 50000;
-N = ceil(baseN*(2*numVals)*(lambdaMax-lambdaMin)/100e-9*log10(deltaWMax/deltaWMin));
+N = ceil(baseN*(2*numVals)*(maxLambda-minLambda)/100e-9*log10(deltaWMax/deltaWMin));
 
 lambdaVals = zeros(numVals, N); % m
 cVals = zeros(numVals, N); % m^2
@@ -45,7 +45,7 @@ deltaWVals = zeros(numVals, N); % s^-1
 error = zeros(1, N);
 for i = 1:N
     % Generate the random lambda values and the corresponding frequencies
-    lambdaVals(:, i) = lambdaMin + (lambdaMax-lambdaMin)*rand(numVals, 1);
+    lambdaVals(:, i) = minLambda + (maxLambda-minLambda)*rand(numVals, 1);
     wVals = 2*pi*c./lambdaVals(:, i);
     
     % Generate the deltaW values randomly
