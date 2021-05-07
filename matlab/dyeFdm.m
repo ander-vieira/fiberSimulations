@@ -34,13 +34,13 @@ alfaPMMA = attenuationPMMA(ll);
 
 isol = solarIrradianceSpline(ll);
 
-ncore = refractionIndexPMMA(ll);
+nPMMA = refractionIndexPMMA(ll);
 
 beta = zeros(1, numll);
 Kz = zeros(1, numll);
 for k = 1:numll
 %     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
-    [beta(k), Kz(k)] = geometricalParamsI(ncore(k));
+    [beta(k), Kz(k)] = geometricalParamsI(nPMMA(k));
 end
 
 efficiency = zeros(1, numll);
@@ -48,7 +48,7 @@ for k = 1:numll
     alfaCore = alfaPMMA(k) + sigmaabs(k)*N + realmin;
 %     efficiency(k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
 %     efficiency(k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
-    efficiency(k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
+    efficiency(k) = fiberAbsorptionTwoInterfaces(nPMMA(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
 end
 
 % Precalculated constants
@@ -57,7 +57,7 @@ Nespconst = dt/tauRad+dt/tauNR;
 Nsolconst = sum(isol*dlambda*dt*diameter.*efficiency./concentrationToPower);
 Nabsconst = Kz.*sigmaabs*dt./concentrationToPower;
 Nestconst = Kz.*sigmaemi*dt./concentrationToPower;
-Ppropconst = ncore*dz/(c*dt);
+Ppropconst = nPMMA*dz/(c*dt);
 Pattconst = Kz.*alfaPMMA*dz;
 Pabsconst = Kz.*sigmaabs*dz;
 Pestconst = Kz.*sigmaemi*dz;

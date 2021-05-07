@@ -43,13 +43,13 @@ alfaPMMA = attenuationPMMA(ll);
 
 isol = solarIrradianceSpline(ll);
 
-ncore = refractionIndexPMMA(ll);
+nPMMA = refractionIndexPMMA(ll);
 
 beta = zeros(1, numll);
 Kz = zeros(1, numll);
 for k = 1:numll
 %     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
-    [beta(k), Kz(k)] = geometricalParamsI(ncore(k));
+    [beta(k), Kz(k)] = geometricalParamsI(nPMMA(k));
 end
 
 efficiency = zeros(numDopants, numll);
@@ -58,7 +58,7 @@ for m = 1:numDopants
         alfaCore = alfaPMMA(k) + sum(sigmaabs(:, k).*N') + realmin;
     %     efficiency(m, k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(m, k)*N, alfaCore);
     %     efficiency(m, k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(m, k)*N, alfaCore);
-        efficiency(m, k) = fiberAbsorptionTwoInterfaces(ncore(k), 1.4, diameter, q, sigmaabs(m, k)*N(m), alfaCore, alfaPMMA(k));
+        efficiency(m, k) = fiberAbsorptionTwoInterfaces(nPMMA(k), 1.4, diameter, q, sigmaabs(m, k)*N(m), alfaCore, alfaPMMA(k));
     end
 end
 
