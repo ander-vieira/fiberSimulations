@@ -7,7 +7,7 @@ function [lightPout, electricPout] = dyeInCladRaytracing(dopant, N, diameter, q,
 %   in the fiber's CLADDING only (as opposed to dyeRaytracing).
 %
 %   dopant: the dye dopant's name (see getDyeDopantAttributes)
-%   N: the dopant concentration (in molecules/m^3)
+%   N: the dopant concentration (molecules/m^3)
 %   diameter: the fiber's diameter (m)
 %   q: the fraction of the core's diameter and the fiber's (Din/Dout)
 %   lightL: the fiber length under sunlight (m)

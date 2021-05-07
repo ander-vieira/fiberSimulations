@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = oneDopantStationary(dopant, N, diameter, lightL, darkL)
-%ONEDOPANTSIM_STATIONARY Summary of this function goes here
+function [lightPout, electricPout] = dyeStationary(dopant, N, diameter, lightL, darkL)
+%DYESTATIONARY Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;

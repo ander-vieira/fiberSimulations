@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = earthDopantFdm(dopant, N, diameter, q, lightL, darkL)
-%EARTHDOPANTFDM Summary of this function goes here
+function [lightPout, electricPout] = earthFdm(dopant, N, diameter, q, lightL, darkL)
+%EARTHFDM Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;

@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = earthDopantIterative(dopant, N, diameter, q, lightL, darkL)
-%ONEDOPANTITERATIVE Summary of this function goes here
+function [lightPout, electricPout] = earthIterative(dopant, N, diameter, q, lightL, darkL)
+%EARTHITERATIVE Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;

@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = multiDopantIterative(dopant, N, diameter, q, lightL, darkL)
-%ONEDOPANTITERATIVE Summary of this function goes here
+function [lightPout, electricPout] = multiDyeIterative(dopant, N, diameter, q, lightL, darkL)
+%MULTIDYEITERATIVE Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;

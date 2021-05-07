@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, earthDopant, earthN, diameter, q, lightL, darkL)
-%COMBINEDDOPANTITERATIVE Simulate a POF with dye and rare earth dopants
+function [lightPout, electricPout] = combinedIterative(dyeDopant, dyeN, earthDopant, earthN, diameter, q, lightL, darkL)
+%COMBINEDITERATIVE Simulate a POF with dye and rare earth dopants
 %   Allows multiple dye dopants AND multiple rare earth dopants
 %   Iterative method: gets the stationary state of the fiber
 %   but still allows simulating bidirectional propagation
@@ -12,8 +12,9 @@ function [lightPout, electricPout] = combinedDopantIterative(dyeDopant, dyeN, ea
 %   earthN: array with the concentration of each rare earth dopant (m^-3)
 %   Must be the same length as earthDopant
 %   diameter: the fiber's diameter (m)
-%   lightL: illuminated length of the fiber (m)
-%   darkL: non-illuminated length at the end of the fiber (m)
+%   q: the fraction of the core's diameter and the fiber's (Din/Dout)
+%   lightL: the fiber length under sunlight (m)
+%   darkL: the fiber length NOT under sunlight (e.g. connectors) (m)
 %   
 %   Example calls:
 %   combinedDopantIterative(["C1" "C6"], [.7 1]*5.9226e22, [""], [0], 1e-3, .06, .03);

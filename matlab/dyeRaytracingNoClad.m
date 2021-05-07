@@ -7,7 +7,7 @@ function [lightPout, electricPout] = dyeRaytracingNoClad(dopant, N, diameter, ~,
 %   cladding.
 %
 %   dopant: the dye dopant's name (see getDyeDopantAttributes)
-%   N: the dopant concentration (in molecules/m^3)
+%   N: the dopant concentration (molecules/m^3)
 %   diameter: the fiber's diameter (m)
 %   q: ignored parameter, for consistency with other function calls
 %   lightL: the fiber length under sunlight (m)

@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = multiDopantStationary(dopant, N, diameter, lightL, darkL)
-%ONEDOPANTSIM_STATIONARY Summary of this function goes here
+function [lightPout, electricPout] = multiDyeStationary(dopant, N, diameter, lightL, darkL)
+%MULTIDYESTATIONARY Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;

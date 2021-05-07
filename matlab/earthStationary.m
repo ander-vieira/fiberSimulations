@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = earthDopantStationary(dopant, N, diameter, lightL, darkL)
-%ONEDOPANTSIM_STATIONARY Summary of this function goes here
+function [lightPout, electricPout] = earthStationary(dopant, N, diameter, lightL, darkL)
+%EARTHSTATIONARY Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;

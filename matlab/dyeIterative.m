@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = oneDopantIterative(dopant, N, diameter, q, lightL, darkL)
-%ONEDOPANTITERATIVE Summary of this function goes here
+function [lightPout, electricPout] = dyeIterative(dopant, N, diameter, q, lightL, darkL)
+%DYEITERATIVE Summary of this function goes here
 %   Detailed explanation goes here
 
 tic;
