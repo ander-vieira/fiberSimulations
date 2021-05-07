@@ -1,8 +1,18 @@
-function [lightPout, electricPout] = oneDopantRaytracing(dopant, N, diameter, ~, lightL, darkL, incidenceAngleDegrees)
-%ONEDOPANTRAYTRACING Simulate fibers using raytracing as the main tool
+function [lightPout, electricPout] = dyeInCladRaytracing(dopant, N, diameter, q, lightL, darkL, incidenceAngleDegrees)
+%DYEINCLADRAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
 %   using rate equations
+%   This function simulates two interphase fibers with the dye dopant being
+%   in the fiber's CLADDING only (as opposed to dyeRaytracing).
+%
+%   dopant: the dye dopant's name (see getDyeDopantAttributes)
+%   N: the dopant concentration (in molecules/m^3)
+%   diameter: the fiber's diameter (m)
+%   q: the fraction of the core's diameter and the fiber's (Din/Dout)
+%   lightL: the fiber length under sunlight (m)
+%   darkL: the fiber length NOT under sunlight (e.g. connectors) (m)
+%   incidenceAngleDegrees: inclination of the incident sunlight (º)
 
 tic;
 
@@ -41,10 +51,11 @@ sigmaabsValues = sigmaabsFun(ll);
 sigmaemiValues = sigmaemiFun(ll);
 emittedDistribution = sigmaemiValues/sum(sigmaemiValues);
 alfaPMMAValues = attenuationPMMA(ll);
+nPMMA = refractionIndexPMMA(ll);
 
 quantumYield = tauNR/(tauRad+tauNR);
 % Conversion constant from power to N2
-conversionN2 = 4*ll/(pi*h*c*diameter^2*dz)/(1/tauRad+1/tauNR); % m^-3/W
+conversionN2 = 4*ll/(pi*h*c*diameter^2*(1-q^2)*dz)/(1/tauRad+1/tauNR); % m^-3/W
 
 % Initial values
 N2 = zeros(1, numzz);
@@ -76,20 +87,26 @@ end
 function medium = getMedium(position)
     distanceToCenter = position(1)^2+position(2)^2;
     
-    if(distanceToCenter < diameter^2/4)
+    if(distanceToCenter < (diameter*q)^2/4)
         % Fiber core
         medium = 0;
+    elseif(distanceToCenter < diameter^2/4)
+        % Fiber cladding
+        medium = 1;
     else
         % Air
-        medium = 1;
+        medium = 2;
     end
 end
 
 function n = getMediumParams(medium, k)
     if medium == 0
         % Fiber core
-        n = refractionIndexPMMA(ll(k));
+        n = nPMMA(k);
     elseif medium == 1
+        % Fiber cladding
+        n = 1.54;
+    elseif medium == 2
         % Air
         n = 1;
     end
@@ -97,14 +114,16 @@ end
 
 % Get the point of intersection with an interphase
 function [ds, medium] = getRefractionPoint(position, direction)
-    % Assume direction is always normalized
     beta = (direction(1)*position(1, 1)+direction(2)*position(1, 2))/(direction(1)^2+direction(2)^2);
-    gamma = (position(1, 1)^2+position(1, 2)^2-diameter^2/4)/(direction(1)^2+direction(2)^2);
+    gamma1 = (position(1, 1)^2+position(1, 2)^2-(diameter*q)^2/4)/(direction(1)^2+direction(2)^2);
+    gamma2 = (position(1, 1)^2+position(1, 2)^2-diameter^2/4)/(direction(1)^2+direction(2)^2);
     
-    dsList = [sqrt(beta^2-gamma)-beta -sqrt(beta^2-gamma)-beta];
+    dsList = [sqrt(beta^2-gamma2)-beta sqrt(beta^2-gamma1)-beta -sqrt(beta^2-gamma2)-beta -sqrt(beta^2-gamma1)-beta];
     ds = min(dsList(imag(dsList) == 0 & dsList > 0));
     
     if ds == dsList(1)
+        medium = 2;
+    elseif ds == dsList(2) || ds == dsList(3)
         medium = 1;
     else
         medium = 0;
@@ -130,7 +149,7 @@ function runPhoton(position, direction, k, photonPower)
         prevMedium = getMedium(position(1, :));
         prevNIndex = getMediumParams(prevMedium, k);
         
-        % Distance interval travelled
+        % Distance interval travelled 
         ds = prevNIndex*da;
         
         % Calculate new position
@@ -144,7 +163,7 @@ function runPhoton(position, direction, k, photonPower)
             
             boundaryDistance = 0.01*da;
             
-            % Calculate intersection with fiber's surface
+            % Calculate intersection with fiber's edge
             [ds, medium] = getRefractionPoint(position, direction);
             nIndex = getMediumParams(medium, k);
             
@@ -184,7 +203,7 @@ function runPhoton(position, direction, k, photonPower)
                 cosI = direction*normalVector';
                 cosT = newDirection*normalVector';
                 fresnelR = (((prevNIndex*cosI-nIndex*cosT)/(prevNIndex*cosI+nIndex*cosT))^2+((prevNIndex*cosT-nIndex*cosI)/(prevNIndex*cosT+nIndex*cosI))^2)/2;
-                                
+                
                 % Random chance to reflect ray
                 % Better than splitting into two rays to prevent the power
                 % from being diluted
@@ -204,23 +223,21 @@ function runPhoton(position, direction, k, photonPower)
         end
         
         % Photon leaves the fiber (and is lost)
-        if(medium == 1)
+        if(medium == 2)
             normalVector = [position(2, 1) ; position(2, 2) ; 0];
             if(direction*normalVector > 0)
                 loopOn = false;
                 runawayPhotons = runawayPhotons + 1;
             end
-        end
-        
-        if medium == 0
+        else
             % Photon reaches right end of fiber (and is concentrated)
             if(loopOn && position(2, 3) >= lightL + darkL && position(1, 3) < lightL + darkL)
                 loopOn = false;
-
+                
                 Pout(k) = Pout(k) + photonPower;
                 finalPhotons = finalPhotons + 1;
             end
-        
+            
             % Photon reaches ends of fiber but isn't concentrated (and is lost)
             if(loopOn && (position(2, 3) < 0 || position(2, 3) >= lightL + darkL))
                 loopOn = false;
@@ -234,10 +251,12 @@ function runPhoton(position, direction, k, photonPower)
             if photonPower < minimumPower
                 loopOn = false;
             end
-            
+        end
+        
+        if medium == 1
             % Index of the N2 interval to use
             j = 1+floor((position(1, 3)+position(2, 3))/2/dz);
-            
+
             % Photon may be absorbed by dopant (and reemitted)
             if(loopOn && rand() < sigmaabs*(N-N2(j))*ds)
                 N2(j) = N2(j)+photonPower*conversionN2(k);
@@ -262,7 +281,7 @@ function runPhoton(position, direction, k, photonPower)
                     loopOn = false;
                 end
             end
-
+            
             % Photon may cause stimulated emission by the dopant
             if(loopOn && rand() < sigmaemi*N2(j)*ds)
                 N2(j) = N2(j) - photonPower*conversionN2(k);

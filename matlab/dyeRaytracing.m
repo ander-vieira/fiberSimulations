@@ -1,10 +1,18 @@
-function [lightPout, electricPout] = oneDopantRaytracingClad(dopant, N, diameter, q, lightL, darkL, incidenceAngleDegrees)
-%ONEDOPANTRAYTRACING2 Simulate fibers using raytracing as the main tool
+function [lightPout, electricPout] = dyeRaytracing(dopant, N, diameter, q, lightL, darkL, incidenceAngleDegrees)
+%DYERAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
 %   using rate equations
-%   This function simulates fibers with both core and cladding, with the
-%   dopant being only in the core
+%   This function simulates two interphase fibers with the dye dopant being
+%   in the fiber's core only.
+%
+%   dopant: the dye dopant's name (see getDyeDopantAttributes)
+%   N: the dopant concentration (in molecules/m^3)
+%   diameter: the fiber's diameter (m)
+%   q: the fraction of the core's diameter and the fiber's (Din/Dout)
+%   lightL: the fiber length under sunlight (m)
+%   darkL: the fiber length NOT under sunlight (e.g. connectors) (m)
+%   incidenceAngleDegrees: inclination of the incident sunlight (º)
 
 tic;
 
@@ -43,6 +51,7 @@ sigmaabsValues = sigmaabsFun(ll);
 sigmaemiValues = sigmaemiFun(ll);
 emittedDistribution = sigmaemiValues/sum(sigmaemiValues);
 alfaPMMAValues = attenuationPMMA(ll);
+nPMMA = refractionIndexPMMA(ll);
 
 quantumYield = tauNR/(tauRad+tauNR);
 % Conversion constant from power to N2
@@ -93,10 +102,10 @@ end
 function n = getMediumParams(medium, k)
     if medium == 0
         % Fiber core
-        n = refractionIndexPMMA(ll(k));
+        n = nPMMA(k);
     elseif medium == 1
         % Fiber cladding
-        n = 1.4;
+        n = 1.54;
     elseif medium == 2
         % Air
         n = 1;
