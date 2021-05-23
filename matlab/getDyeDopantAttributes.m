@@ -45,6 +45,7 @@ elseif strcmp(dopant, 'LumogenOrange')
 %     sigmaemi = generateGaussianSigma([566.04e-9;572.77e-9;620.67e-9]-20e-9, [1.23702e-20;9.58196e-21;4.79994e-21], [1.50599e14;7.84788e13;1.3689e14]);
     quenchingA = 0;
     quenchingB = -3;
+    
 elseif strcmp(dopant, 'LumogenYellow')
     tauRad = 6e-9;
     tauNR = 7.4e-8; % Calculated from a quantum yield of 0.925
@@ -54,6 +55,7 @@ elseif strcmp(dopant, 'LumogenYellow')
     sigmaemi = generateGaussianSigma([442.75e-9;495.20e-9;537.64e-9], [1.43099e-22;9.88894e-21;8.58422e-21], [6.57363e14;1.18669e14;1.79757e14]);
     quenchingA = 0;
     quenchingB = -3;
+    
 else % Default is Rh6G
     tauRad = 4.8e-9;
     tauNR = 1; % Very large value -> quantum yield is basically 1
@@ -63,6 +65,7 @@ else % Default is Rh6G
 %     sigmaemi = generateGaussianSigma([541.52e-9;577.56e-9], [1.67023e-20;5.16708e-21], [1.65728e14;2.47508e14]);
     quenchingA = 7e9;
     quenchingB = -2.4;
+    
 end
 
 end
