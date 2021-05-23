@@ -45,8 +45,8 @@ end
 efficiency = zeros(1, numll);
 for k = 1:numll
     alfaCore = alfaPMMA(k) + sigmaabs(k)*N + realmin;
-%     efficiency(k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
-%     efficiency(k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
+%     efficiency(k) = fiberAbsorptionNoReflections(nPMMA(k), diameter, sigmaabs(k)*N, alfaCore);
+%     efficiency(k) = fiberAbsorptionReflections(nPMMA(k), diameter, sigmaabs(k)*N, alfaCore);
     efficiency(k) = fiberAbsorptionTwoInterfaces(nPMMA(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
 end
 

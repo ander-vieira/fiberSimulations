@@ -2,7 +2,7 @@ function [lightPout, electricPout] = dyeRaytracing(dopant, N, diameter, q, light
 %DYERAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
-%   using rate equations
+%   using rate equations.
 %   This function simulates two interphase fibers with the dye dopant being
 %   in the fiber's core only.
 %

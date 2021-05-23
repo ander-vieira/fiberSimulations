@@ -1,6 +1,17 @@
 function [lightPout, electricPout] = earthIterative(dopant, N, diameter, q, lightL, darkL)
-%EARTHITERATIVE Summary of this function goes here
-%   Detailed explanation goes here
+%EARTHITERATIVE Simulate fibers through the stationary state equations
+%   This function simulates a fiber's behavior under sunlight by solving
+%   the rate equations in their stationary state version (i.e. by nulling
+%   all derivatives with respect to time).
+%   It also uses an iterative approach to run power in both directions
+%   through the fiber.
+%
+%   dopant: the rare earth dopant's name (see getDyeDopantAttributes)
+%   N: the dopant concentration (molecules/m^3)
+%   diameter: the fiber's diameter (m)
+%   q: the fraction of the core's diameter and the fiber's (Din/Dout)
+%   lightL: the fiber length under sunlight (m)
+%   darkL: the fiber length NOT under sunlight (e.g. connectors) (m)
 
 tic;
 
@@ -45,8 +56,8 @@ end
 efficiency = zeros(1, numll);
 for k = 1:numll
     alfaCore = alfaPMMA(k) + sigmaabs(k)*N + realmin;
-%     efficiency(k) = fiberAbsorptionNoReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
-%     efficiency(k) = fiberAbsorptionReflections(ncore(k), diameter, sigmaabs(k)*N, alfaCore);
+%     efficiency(k) = fiberAbsorptionNoReflections(nPMMA(k), diameter, sigmaabs(k)*N, alfaCore);
+%     efficiency(k) = fiberAbsorptionReflections(nPMMA(k), diameter, sigmaabs(k)*N, alfaCore);
     efficiency(k) = fiberAbsorptionTwoInterfaces(nPMMA(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
 end
 

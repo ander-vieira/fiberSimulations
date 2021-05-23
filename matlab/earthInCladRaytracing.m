@@ -2,7 +2,7 @@ function [lightPout, electricPout] = earthInCladRaytracing(dopant, N, diameter, 
 %EARTHINCLADRAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
-%   using rate equations
+%   using rate equations.
 %   This function simulates two interphase fibers with the rare earth
 %   dopant being in the fiber's CLADDING only
 %   (as opposed to earthRaytracing).

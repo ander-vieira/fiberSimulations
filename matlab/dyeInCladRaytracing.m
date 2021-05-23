@@ -2,7 +2,7 @@ function [lightPout, electricPout] = dyeInCladRaytracing(dopant, N, diameter, q,
 %DYEINCLADRAYTRACING Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
-%   using rate equations
+%   using rate equations.
 %   This function simulates two interphase fibers with the dye dopant being
 %   in the fiber's CLADDING only (as opposed to dyeRaytracing).
 %
