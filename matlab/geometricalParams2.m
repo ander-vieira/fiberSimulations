@@ -1,8 +1,6 @@
-function [beta, Kztotal, Ftotal] = geometricalParams2(ncore, nclad, q)
+function [beta, KZCore, KZClad] = geometricalParams2(ncore, nclad, q)
 % GEOMETRICALPARAMS2
 %
-
-tic;
 
 % Limits for the cosines of the angles of incidence into each interphase
 % If cos < M, then sin > sinCut, and TIR happens in that interphase
@@ -12,7 +10,7 @@ M2 = sqrt(1-(1/nclad)^2);
 % For a given ray defined by u0 and alpha (see notes), calculate parameters
 % TIR: whether TIR happens to keep the ray in the fiber (1 or 0)
 % F: fraction of distance traversed inside the core (between 0 and 1)
-function [TIR, F] = solveRayParams(u0, alpha)
+function [TIR, invKZCore, invKZClad] = solveRayParams(u0, alpha)
     % Initial position and velocity of the ray
     p0 = [q*u0 0 0];
     v1 = [0 sin(alpha) cos(alpha)];
@@ -21,9 +19,10 @@ function [TIR, F] = solveRayParams(u0, alpha)
     p1 = [q*u0 q*sqrt(1-u0.^2) q*sqrt(1-u0.^2)/tan(alpha)];
     
     % Distance traveled in the core
-    distance1 = vecnorm(p1-p0);
+    distance1 = p1-p0;
     
     % Check TIR in the core-cladding interphase
+    % Normal vector is already normalized by definition
     normalVector1 = p1;
     normalVector1(3) = 0;
     cosTheta1 = v1*normalVector1';
@@ -32,7 +31,8 @@ function [TIR, F] = solveRayParams(u0, alpha)
         % If TIR in the core-cladding interphase: stays inside the core
         TIR = 1;
         
-        F = 1;
+        invKZCore = distance1(3)/vecnorm(distance1);
+        invKZClad = 0;
     else
         % If refraction: goes on to cladding, possibly TIR in the next
         % interphase
@@ -52,27 +52,31 @@ function [TIR, F] = solveRayParams(u0, alpha)
         % Intersection point with cladding-air interphase
         p2 = p1+v2*tau;
         
+        % Check TIR in the core-cladding interphase
+        % Normal vector is already normalized by definition
         normalVector2 = p2;
         normalVector2(3) = 0;
-        
-        % Check for TIR in the cladding-air interphase
         cosTheta2 = v2*normalVector2';
         
         % Distance traveled in the cladding
-        distance2 = vecnorm(p2-p1);
+        distance2 = p2-p1;
         
         if cosTheta2 < M2
             % If TIR in the cladding-air interphase
             TIR = 1;
             
-            % Calculate F using the computed distance vectors
-            % Distance in cladding is doubled due to going through it twice
-            F = distance1/(distance1+distance2);
+            % Calculate the inverses of KZcore and KZclad, which measure
+            % the fraction between distance along the z axis and distance
+            % traversed (including zigzag movement) in core and cladding,
+            % respectively
+            invKZCore = (distance1(3)+distance2(3))/vecnorm(distance1);
+            invKZClad = (distance1(3)+distance2(3))/vecnorm(distance2);
         else
-            % If no TIR, the ray is lost, F value isn't used, can be any
+            % If no TIR, the ray is lost, other values aren't used
             TIR = 0;
             
-            F = 0;
+            invKZCore = 0;
+            invKZClad = 0;
         end
     end
 end
@@ -160,7 +164,7 @@ for i = 1:length(gaussKronrodX)
         alpha = (1+gaussKronrodX(j))*pi/4;
         
         % Evaluate solveRayParams
-        [TIR, F] = solveRayParams(u0, alpha);
+        [TIR, invKZCore, invKZClad] = solveRayParams(u0, alpha);
         
         % Evaluate the integrands use solveRayParams results
         % and add each integrand evaluation to the respective integral sum
@@ -168,20 +172,20 @@ for i = 1:length(gaussKronrodX)
         integral1 = integral1 + pi/2*gaussKronrodW(i)*gaussKronrodW(j)*integrand1;
         integrand2 = integrand1*TIR;
         integral2 = integral2 + pi/2*gaussKronrodW(i)*gaussKronrodW(j)*integrand2;
-        integrand3 = integrand2*F;
+        integrand3 = integrand2*invKZCore;
         integral3 = integral3 + pi/2*gaussKronrodW(i)*gaussKronrodW(j)*integrand3;
-        integrand4 = integrand2*cos(alpha);
+        integrand4 = integrand2*invKZClad;
         integral4 = integral4 + pi/2*gaussKronrodW(i)*gaussKronrodW(j)*integrand4;
     end
 end
 
 % Using the computed integrals, get the values of the parameters
 beta = integral2/integral1/2;
-Kztotal = integral2/integral4;
-Ftotal = integral3/integral2;
+KZCore = integral2/integral3;
+KZClad = integral2/integral4;
 
-% Slow method using built-in integral2 method
-% Gives very similar results, depending on order of G-K used
+% % Slow method using built-in integral2 method
+% % Gives very similar results, depending on order of G-K used
 % integrand1 = @(u0, alpha) sin(alpha).*sqrt(1-u0.^2);
 % 
 % function result = integrand2(u0, alpha)
@@ -208,9 +212,9 @@ Ftotal = integral3/integral2;
 %             end
 %         end
 %     else
-%         [TIR, F] = solveRayParams(u0, alpha);
+%         [TIR, invKZCore] = solveRayParams(u0, alpha);
 % 
-%         result = integrand1(u0, alpha)*TIR*F;
+%         result = integrand1(u0, alpha)*TIR*invKZCore;
 %     end
 % end
 % 
@@ -223,16 +227,18 @@ Ftotal = integral3/integral2;
 %             end
 %         end
 %     else
-%         [TIR, F] = solveRayParams(u0, alpha);
+%         [TIR, ~, invKZClad] = solveRayParams(u0, alpha);
 % 
-%         result = integrand1(u0, alpha)*TIR*cos(alpha)/(F+(1-F)*ncore/nclad);
+%         result = integrand1(u0, alpha)*TIR*invKZClad;
 %     end
 % end
 % 
-% beta = integral2(@integrand2, 0, 1, 0, pi/2)/integral2(integrand1, 0, 1, 0, pi/2)/2;
-% Kztotal = integral2(@integrand2, 0, 1, 0, pi/2)/integral2(@integrand4, 0, 1, 0, pi/2);
-% Ftotal = integral2(@integrand3, 0, 1, 0, pi/2)/integral2(@integrand2, 0, 1, 0, pi/2);
-
-toc;
+% result1 = integral2(integrand1, 0, 1, 0, pi/2);
+% result2 = integral2(@integrand2, 0, 1, 0, pi/2);
+% result3 = integral2(@integrand3, 0, 1, 0, pi/2);
+% result4 = integral2(@integrand4, 0, 1, 0, pi/2);
+% beta = result2/result1/2;
+% KZCore = result2/result3;
+% KZClad = result2/result4;
 
 end
