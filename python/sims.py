@@ -3,9 +3,10 @@ import time;
 import numpy;
 from matplotlib import pyplot as plt;
 
+import params;
 import setups;
 
-def lambdaRange(minLambda, maxLambda, numLL = 61):
+def generateLambdas(minLambda, maxLambda, numLL = 61):
     return numpy.linspace(minLambda, maxLambda, numLL);
 
 def runRay(ray, cmpList):
@@ -59,7 +60,8 @@ class resultPrinter:
 
 def dyeRaytracingNoClad(dopant, N, diameter, q, lightL, darkL=0):
 
-    ll = lambdaRange(440e-9, 740e-9, 61);
+    minLambda, maxLambda = params.getLambdaRange([dopant]);
+    ll = generateLambdas(minLambda, maxLambda, 101);
 
     generator, collector, cmpList = setups.noClad(dopant, N, diameter, lightL, darkL, ll);
 
@@ -72,7 +74,8 @@ def dyeRaytracingNoClad(dopant, N, diameter, q, lightL, darkL=0):
 
 def dyeRaytracing(dopant, N, diameter, q, lightL, darkL=0):
 
-    ll = lambdaRange(440e-9, 740e-9, 61);
+    minLambda, maxLambda = params.getLambdaRange([dopant]);
+    ll = generateLambdas(minLambda, maxLambda, 101);
 
     generator, collector, cmpList = setups.coreClad(dopant, N, diameter, q, lightL, darkL, ll);
 
@@ -85,7 +88,8 @@ def dyeRaytracing(dopant, N, diameter, q, lightL, darkL=0):
 
 def dyeRaytracingInClad(dopant, N, diameter, q, lightL, darkL=0):
 
-    ll = lambdaRange(440e-9, 740e-9, 61);
+    minLambda, maxLambda = params.getLambdaRange([dopant]);
+    ll = generateLambdas(minLambda, maxLambda, 101);
 
     generator, collector, cmpList = setups.dopantInClad(dopant, N, diameter, q, lightL, darkL, ll);
 
