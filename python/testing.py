@@ -1,6 +1,4 @@
 import numpy;
-import math;
-import time;
 
 import vector3;
 import basics;
@@ -30,5 +28,5 @@ print(sum(collector.finalPower));
 
 #sims.dyeRaytracing("Rh6G", 1.5e22, 3e-3, 0.98, 0.1);
 sims.dyeRaytracingInClad("Rh6G", 3e22, 1e-3, 0.97, 0.1);
-sims.dyeRaytracingInClad("Rh6G", 3e22, 2e-3, 0.97, 0.1);
-sims.dyeRaytracingInClad("Rh6G", 3e22, 3e-3, 0.97, 0.1);
+sims.dyeRaytracingInClad("RhB", 3e22, 1e-3, 0.97, 0.1);
+sims.dyeRaytracingInClad("LumR", 3e22, 1e-3, 0.97, 0.1);

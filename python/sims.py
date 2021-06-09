@@ -3,11 +3,6 @@ import time;
 import numpy;
 from matplotlib import pyplot as plt;
 
-#import vector3;
-#import params;
-#import constraints;
-#import interphases;
-#import components;
 import setups;
 
 def lambdaRange(minLambda, maxLambda, numLL = 61):

@@ -53,6 +53,36 @@ dyeDopants = {
         "tauNR": 1,
         "sigmaabs": readCsvLL("../csv/sigmaabs_Rh6G.csv", 530.58e-9, 4.3298e-20),
         "sigmaemi": readCsvLL("../csv/sigmaemi_Rh6G.csv", 544.02e-9, 2.0375e-20)
+    }, "RhB": {
+        "tauRad": 4.8e-9,
+        "tauNR": 1,
+        "sigmaabs": readCsvLL("../csv/sigmaabs_RhB.csv", 559.29e-9, 3.37e-20),
+        "sigmaemi": readCsvLL("../csv/sigmaemi_RhB.csv", 571.08e-9, 2.4973e-20)
+    }, "LumR": {
+        "tauRad": 4.8e-9,
+        "tauNR": 1,
+        "sigmaabs": readCsvLL("../csv/sigmaabs_LumR.csv", 573.37e-9, 1.9862e-20),
+        "sigmaemi": readCsvLL("../csv/sigmaemi_LumR.csv", 600.85e-9, 2.1984e-20)
+    }, "LumO": {
+        "tauRad": 4.8e-9,
+        "tauNR": 1,
+        "sigmaabs": readCsvLL("../csv/sigmaabs_LumO.csv", 527.00e-9, 2.5290e-20),
+        "sigmaemi": readCsvLL("../csv/sigmaemi_LumO.csv", 569.00e-9, 2.1047e-20)
+    }, "LumY": {
+        "tauRad": 4.8e-9,
+        "tauNR": 1,
+        "sigmaabs": readCsvLL("../csv/sigmaabs_LumY.csv", 477.00e-9, 2.3849e-20),
+        "sigmaemi": readCsvLL("../csv/sigmaemi_LumY.csv", 495.00e-9, 1.0178e-20)
+    }, "C1": {
+        "tauRad": 4.8e-9,
+        "tauNR": 1,
+        "sigmaabs": readCsvLL("../csv/sigmaabs_C1.csv", 341.01e-9, 8.3465e-21),
+        "sigmaemi": readCsvLL("../csv/sigmaemi_C1.csv", 404.84e-9, 8.3713e-21)
+    }, "C6": {
+        "tauRad": 4.8e-9,
+        "tauNR": 1,
+        "sigmaabs": readCsvLL("../csv/sigmaabs_C6.csv", 459e-9, 3.645409e-21),
+        "sigmaemi": readCsvLL("../csv/sigmaemi_C6.csv", 501e-9, 6.020300e-21)
     }
 };
 
