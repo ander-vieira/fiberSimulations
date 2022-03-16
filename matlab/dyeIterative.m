@@ -12,8 +12,8 @@ end
 c = 3e8; % Speed of light (m/s)
 h = 6.63e-34; % Planck constant (J*s)
 
-dlambda = 2e-9;
-[minLambda, maxLambda] = getLambdaRanges(dopant, dlambda);
+% dlambda = 2e-9;
+[minLambda, maxLambda] = getLambdaRanges(dopant);
 
 dz = 5e-5; % m
 
@@ -21,8 +21,10 @@ zz = 0:dz:(lightL+darkL);
 numzz = length(zz);
 lightj = lightL/dz;
 
+numll = 151;
+dlambda = (maxLambda-minLambda)/(numll-1);
 ll = minLambda:dlambda:maxLambda;
-numll = length(ll);
+% numll = length(ll);
 
 [tauRad, sigmaabsFun, sigmaemiFun, tauNR] = getDyeDopantAttributes(dopant);
 sigmaabs = sigmaabsFun(ll);
@@ -39,7 +41,7 @@ beta = zeros(1, numll);
 Kz = zeros(1, numll);
 for k = 1:numll
 %     [beta(k), Kz(k)] = geometricalParamsB(ncore(k));
-    [beta(k), Kz(k)] = geometricalParamsI(nPMMA(k));
+    [beta(k), Kz(k)] = geometricalParamsB(nPMMA(k));
 end
 
 efficiency = zeros(1, numll);
@@ -47,7 +49,8 @@ for k = 1:numll
     alfaCore = alfaPMMA(k) + sigmaabs(k)*N + realmin;
 %     efficiency(k) = fiberAbsorptionNoReflections(nPMMA(k), diameter, sigmaabs(k)*N, alfaCore);
 %     efficiency(k) = fiberAbsorptionReflections(nPMMA(k), diameter, sigmaabs(k)*N, alfaCore);
-    efficiency(k) = fiberAbsorptionTwoInterfaces(nPMMA(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
+%    efficiency(k) = fiberAbsorptionTwoInterfaces(nPMMA(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
+    efficiency(k) = fiberAbsorptionSimpler(nPMMA(k), 1.4, diameter, q, sigmaabs(k)*N, alfaCore, alfaPMMA(k));
 end
 
 % Precalculated constants

@@ -20,15 +20,6 @@ M = 1000000; % Number of photons to simulate
 
 rng('shuffle');
 
-% Constants
-c = 3e8; % m/s
-h = 6.63e-34; % J*s
-
-% Simulation parameters
-dz = 1e-4;
-zz = 0:dz:(lightL+darkL);
-numzz = length(zz);
-
 dlambda = 5e-9;
 [minLambda, maxLambda] = getLambdaRanges(dopant, dlambda);
 ll = minLambda:dlambda:maxLambda;
@@ -54,18 +45,12 @@ alfaPMMAValues = attenuationPMMA(ll);
 nPMMA = refractionIndexPMMA(ll);
 
 quantumYield = tauNR/(tauRad+tauNR);
-% Conversion constant from power to N2
-conversionN2 = 4*ll/(pi*h*c*diameter^2*(1-q^2)*dz)/(1/tauRad+1/tauNR); % m^-3/W
 
 % Initial values
-N2 = zeros(1, numzz);
 incomingPower = solarConstant*diameter*lightL*cos(incidenceAngle); % W
-minimumPower = incomingPower/M*1e-5;
 Pout = zeros(1, numll); % W
 totalPhotons = 0;
 finalPhotons = 0;
-runawayPhotons = 0;
-stimulatedPhotons = 0;
 
 %%%%%%%%%
 % Auxiliary functions
@@ -105,21 +90,37 @@ function n = getMediumParams(medium, k)
         n = nPMMA(k);
     elseif medium == 1
         % Fiber cladding
-        n = 1.54;
+        n = nPMMA(k)+0.1;
     elseif medium == 2
         % Air
         n = 1;
     end
 end
 
+function ds = getAbsorptionDistance(alpha)
+    if alpha <= 0
+        ds = inf;
+    else
+        ds = -log(rand)/alpha;
+    end
+end
+
+function R = fresnelR(N1, N2, cos1, cos2)
+    R = (((N1*cos1-N2*cos2)/(N1*cos1+N2*cos2))^2+((N1*cos2-N2*cos1)/(N1*cos2+N2*cos1))^2)/2;
+end
+
 % Get the point of intersection with an interphase
-function [ds, medium] = getRefractionPoint(position, direction)
+function [ds, medium] = getPhaseIntersection(position, direction)
     beta = (direction(1)*position(1, 1)+direction(2)*position(1, 2))/(direction(1)^2+direction(2)^2);
     gamma1 = (position(1, 1)^2+position(1, 2)^2-(diameter*q)^2/4)/(direction(1)^2+direction(2)^2);
     gamma2 = (position(1, 1)^2+position(1, 2)^2-diameter^2/4)/(direction(1)^2+direction(2)^2);
     
-    dsList = [sqrt(beta^2-gamma2)-beta sqrt(beta^2-gamma1)-beta -sqrt(beta^2-gamma2)-beta -sqrt(beta^2-gamma1)-beta];
+    dsList = [sqrt(beta^2-gamma2)-beta -sqrt(beta^2-gamma2)-beta sqrt(beta^2-gamma1)-beta -sqrt(beta^2-gamma1)-beta];
     ds = min(dsList(imag(dsList) == 0 & dsList > 0));
+    
+    if isempty(ds)
+        ds = Inf;
+    end
     
     if ds == dsList(1)
         medium = 2;
@@ -130,136 +131,93 @@ function [ds, medium] = getRefractionPoint(position, direction)
     end
 end
 
+% Get intersection of ray trajectory with plane given by z = zPos
+function ds = getEndIntersection(position, direction, zPos)
+    if direction(3) == 0
+        % Ray is perpendicular to plane, meaning no intersection
+        ds = Inf;
+    else
+        % Get plane intersection point
+        ds = (zPos-position(3))/direction(3);
+        
+        % Negative intersections don't count
+        if ds <= 0
+            ds = Inf;
+        end
+        
+        % Check if intersection is inside the fiber diameter
+        newPosition = position+direction*ds;
+        if newPosition(1)^2+newPosition(2)^2 >= (diameter/2)^2
+            ds = Inf;
+        end
+    end
+end
+
 % Run an individual photon through the fiber
 % Calls itself recursively for reflected photons and stimulated emission
 function runPhoton(position, direction, k, photonPower)
     totalPhotons = totalPhotons + 1;
     
-    alfaPMMA = alfaPMMAValues(k);
-    sigmaabs = sigmaabsValues(k);
-    sigmaemi = sigmaemiValues(k);
+    alphaPMMA = alfaPMMAValues(k);
+    alphaDopant = N*sigmaabsValues(k);
     
-    position = [zeros(1, 3) ; position];
-    
-    loopOn = true;
-    while loopOn
-        position(1, :) = position(2, :);
-        
-        % Check previous iteration medium
-        prevMedium = getMedium(position(1, :));
-        prevNIndex = getMediumParams(prevMedium, k);
-        
-        % Distance interval travelled 
-        ds = prevNIndex*da;
-        
-        % Calculate new position
-        position(2, :) = position(1, :) + direction*ds;
-        
-        % Check current iteration medium
-        medium = getMedium(position(2, :));
-        
-        if prevMedium ~= medium
-            % Refraction in an interphase
-            
-            boundaryDistance = 0.01*da;
-            
-            % Calculate intersection with fiber's edge
-            [ds, medium] = getRefractionPoint(position, direction);
-            nIndex = getMediumParams(medium, k);
-            
-            position(2, :) = position(1, :) + direction*ds;
-            
-            % Get normal vector of fiber surface
-            normalVector = position(2, :);
-            normalVector(3) = 0;
-            normalVector = normalVector/vecnorm(normalVector);
-            
-            % Get direction for reflected rays (total or partial)
-            reflectedDirection = direction-2*(normalVector*direction')*normalVector;
-            
-            % Project direction vector on tangent surface and normalize
-            tangentVector = direction - (normalVector*direction')*normalVector;
-            sineTheta = vecnorm(tangentVector);
-            tangentVector = tangentVector/sineTheta;
-            
-            % Calculate the new angle via Snell's law
-            newSineTheta = sineTheta*prevNIndex/nIndex;
-            
-            if(newSineTheta >= 1)
-                % Total internal reflection
-                
-                % Get reflected direction
-                direction = reflectedDirection;
-            else
-                % Regular refraction
-                
-                % Get new direction after refraction
-                newCosineTheta = sqrt(1-newSineTheta^2);
-                newTangentVector = newSineTheta*tangentVector;
-                newNormalVector = newCosineTheta*sign(direction*normalVector')*normalVector;
-                newDirection = newTangentVector+newNormalVector;
+    while true
+        medium = getMedium(position);
 
-                % Calculate Fresnel coefficients
-                cosI = direction*normalVector';
-                cosT = newDirection*normalVector';
-                fresnelR = (((prevNIndex*cosI-nIndex*cosT)/(prevNIndex*cosI+nIndex*cosT))^2+((prevNIndex*cosT-nIndex*cosI)/(prevNIndex*cosT+nIndex*cosI))^2)/2;
-                
-                % Random chance to reflect ray
-                % Better than splitting into two rays to prevent the power
-                % from being diluted
-                if rand() < fresnelR
-                    newDirection = reflectedDirection;
-                end
-                
-                % Actually change the direction
-                direction = newDirection;
-            end
-            
-            % Move in the new direction (out of the boundary)
-            position(2, :) = position(2, :) + direction*boundaryDistance;
-            ds = ds+boundaryDistance;
-            
-            medium = getMedium(position(2, :));
-        end
+        % Get intersection with the fiber's interphases
+        [dsPhase, newMedium] = getPhaseIntersection(position, direction);
         
-        % Photon leaves the fiber (and is lost)
-        if(medium == 2)
-            normalVector = [position(2, 1) ; position(2, 2) ; 0];
-            if(direction*normalVector > 0)
-                loopOn = false;
-                runawayPhotons = runawayPhotons + 1;
-            end
+        % Get random distance before ray is absorbed by PMMA
+        if medium == 0 || medium == 1
+            dsPMMA = getAbsorptionDistance(alphaPMMA);
         else
-            % Photon reaches right end of fiber (and is concentrated)
-            if(loopOn && position(2, 3) >= lightL + darkL && position(1, 3) < lightL + darkL)
-                loopOn = false;
-                
-                Pout(k) = Pout(k) + photonPower;
-                finalPhotons = finalPhotons + 1;
-            end
-            
-            % Photon reaches ends of fiber but isn't concentrated (and is lost)
-            if(loopOn && (position(2, 3) < 0 || position(2, 3) >= lightL + darkL))
-                loopOn = false;
-                
-                runawayPhotons = runawayPhotons + 1;
-            end
-            
-            % A fraction of the power is absorbed by PMMA
-            photonPower = photonPower*(1-alfaPMMA*ds);
-            
-            if photonPower < minimumPower
-                loopOn = false;
-            end
+            dsPMMA = Inf;
         end
         
+        % Get random distance before ray is absorbed by dopant
+        % Only if ray is currently in cladding
         if medium == 1
-            % Index of the N2 interval to use
-            j = 1+floor((position(1, 3)+position(2, 3))/2/dz);
-
-            % Photon may be absorbed by dopant (and reemitted)
-            if(loopOn && rand() < sigmaabs*(N-N2(j))*ds)
-                N2(j) = N2(j)+photonPower*conversionN2(k);
+            dsDopant = getAbsorptionDistance(alphaDopant);
+        else
+            dsDopant = Inf;
+        end
+        
+        % Get distance before ray reaches edges of fiber
+        dsLeft = getEndIntersection(position, direction, 0);
+        dsRight = getEndIntersection(position, direction, lightL+darkL);
+        
+        % Get distance to the event that happens first
+        ds = min([dsPhase dsPMMA dsDopant dsLeft dsRight]);
+        
+        if ds == Inf
+            % Ray escaped the fiber
+            break;
+        end
+        
+        position = position+ds*direction;
+        
+        if ds == dsPMMA
+            % Ray was absorbed by PMMA and was lost
+            break;
+        elseif ds == dsLeft
+            % Ray left fiber through left end and was lost
+            break;
+        elseif ds == dsRight
+            % Ray left fiber through right end and was concentrated
+            
+            % Add power carried by the ray to total output power
+            Pout(k) = Pout(k) + photonPower;
+            finalPhotons = finalPhotons + 1;
+            
+            break;
+        elseif ds == dsDopant
+            % Ray was absorbed by dopant
+            
+            if rand > quantumYield
+                % Ray didn't get reemitted and was lost
+                break;
+            else
+                % Ray was reemitted via spontaneous emission
                 
                 % Generate random direction
                 rand1 = 2*pi*rand();
@@ -269,26 +227,57 @@ function runPhoton(position, direction, k, photonPower)
                 % Generate new wavelength after emission
                 oldLambda = ll(k);
                 k = generateDistributedLambda(ll, emittedDistribution);
-                alfaPMMA = alfaPMMAValues(k);
-                sigmaabs = sigmaabsValues(k);
-                sigmaemi = sigmaemiValues(k);
+                alphaPMMA = alfaPMMAValues(k);
+                alphaDopant = N*sigmaabsValues(k);
                 
                 % Change photon power (Stokes shift loss)
                 photonPower = photonPower*oldLambda/ll(k);
-                
-                % Include non radiative decay chance
-                if rand() > quantumYield
-                    loopOn = false;
+            end
+        elseif ds == dsPhase
+            % Ray reached interphase
+
+            nIndex = getMediumParams(medium, k);
+            nIndexNew = getMediumParams(newMedium, k);
+            
+            % Get incidence angle
+            normalVector = [position(1) position(2) 0];
+            normalVector = normalVector/vecnorm(normalVector);
+
+            cosTheta = normalVector*direction';
+            sinTheta = sqrt(1-cosTheta^2);
+            
+            % Apply Snell's law
+            newSinTheta = sinTheta*nIndex/nIndexNew;
+
+            reflectedDirection = direction-2*cosTheta*normalVector;
+
+            if newSinTheta >= 1
+                % Total internal reflection (TIR)
+                direction = reflectedDirection;
+            else
+                % Refraction or partial reflection
+                newCosTheta = sign(cosTheta)*sqrt(1-newSinTheta^2);
+
+                R = fresnelR(nIndex, nIndexNew, cosTheta, newCosTheta);
+
+                if rand < R
+                    % Partial reflection
+                    direction = reflectedDirection;
+                else
+                    % Refraction
+                    
+                    % Calculate direction after refraction vis Snell's law
+                    tangentVector = direction-cosTheta*normalVector;
+                    newTangentVector = tangentVector*nIndex/nIndexNew;
+                    newNormalVector = newCosTheta*normalVector;
+                    refractedDirection = newTangentVector+newNormalVector;
+                    
+                    direction = refractedDirection;
                 end
             end
-            
-            % Photon may cause stimulated emission by the dopant
-            if(loopOn && rand() < sigmaemi*N2(j)*ds)
-                N2(j) = N2(j) - photonPower*conversionN2(k);
-                stimulatedPhotons = stimulatedPhotons + 1;
 
-                runPhoton(position(2, :), direction, k, photonPower);
-            end
+            % Slightly displace the ray off the interphase
+            position = position + direction*1e-9;
         end
     end
 end
@@ -332,8 +321,6 @@ if nargout == 0
     fprintf('Output power of fiber: %g uW\n', lightPout*1e6);
     fprintf('Output power of solar cell: %g uW\n', electricPout*1e6);
     fprintf('Photons reaching output: %d/%d\n', finalPhotons, totalPhotons);
-    fprintf('Photons leaving the fiber: %d/%d\n', runawayPhotons, totalPhotons);
-    fprintf('Stimulated emission photons: %d/%d\n', stimulatedPhotons, totalPhotons);
     
     % Plot power spectrum
     figure(1);
