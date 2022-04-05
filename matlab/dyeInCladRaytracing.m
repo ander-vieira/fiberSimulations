@@ -16,7 +16,10 @@ function [lightPout, electricPout] = dyeInCladRaytracing(dopant, N, diameter, q,
 
 tic;
 
-M = 1000000; % Number of photons to simulate
+Mx = 100;
+Mz = 100;
+Mn = 200;
+M = Mx*Mz*Mn; % Number of photons to simulate
 
 rng('shuffle');
 
@@ -24,8 +27,6 @@ dlambda = 5e-9;
 [minLambda, maxLambda] = getLambdaRanges(dopant, dlambda);
 ll = minLambda:dlambda:maxLambda;
 numll = length(ll);
-
-da = 1e-5;
 
 % Rotation due to sunlight incidence angle
 incidenceAngle = deg2rad(incidenceAngleDegrees);
@@ -90,7 +91,7 @@ function n = getMediumParams(medium, k)
         n = nPMMA(k);
     elseif medium == 1
         % Fiber cladding
-        n = nPMMA(k)+0.1;
+        n = nPMMA(k)+0.2;
     elseif medium == 2
         % Air
         n = 1;
@@ -201,7 +202,11 @@ function runPhoton(position, direction, k, photonPower)
             break;
         elseif ds == dsLeft
             % Ray left fiber through left end and was lost
-            break;
+            
+            % Reflect ray by a planar mirror on the left end
+            direction(3) = -direction(3);
+            
+            % break;
         elseif ds == dsRight
             % Ray left fiber through right end and was concentrated
             
@@ -286,24 +291,38 @@ end
 % Main loop
 
 if nargout == 0
-    fprintf('i = 0000000');
+    fprintf('Progress: 000%%');
 end
-for i = 1:M
-    % Generate random photon from incident sunlight
-    k = generateDistributedLambda(ll, solarDistribution);
-    photonPower = incomingPower/M;
-    
-    % Get initial position of photon (directly above fiber, random)
-    % and direction (rotated using incidence angle)
-    direction = [0 -1 0]*rotationMatrix;
-    position = [diameter*(rand()-1/2) 0 lightL*rand()]+[0 (0.5*diameter+10*da)/rotationMatrix(2, 2) 0]*rotationMatrix;
 
-    runPhoton(position, direction, k, photonPower);
+index = 0;
+% Get direction of ray (rotated using incidence angle)
+direction = [0 -1 0]*rotationMatrix;
+
+for i = 1:Mx
+    posX = diameter*((i-1/2)/Mx-1/2);
     
-    if nargout == 0 && mod(i, 5000) == 0
-        fprintf('\b\b\b\b\b\b\b%07d', i);
+    for j = 1:Mz
+        posZ = lightL*(j-1/2)/Mz;
+
+        % Get initial position of ray (directly above fiber, random)
+        position = [posX 0 posZ]+[0 (0.6*diameter)/rotationMatrix(2, 2) 0]*rotationMatrix;
+        
+        for n = 1:Mn
+            % Generate random photon from incident sunlight
+            k = generateDistributedLambda(ll, solarDistribution);
+            photonPower = incomingPower/M;
+
+            runPhoton(position, direction, k, photonPower);
+
+            index = index + 1;
+
+            if nargout == 0 && mod(index*100, M) == 0
+                fprintf('\b\b\b\b%03d%%', index*100/M);
+            end
+        end
     end
 end
+
 if nargout == 0
     fprintf('\n');
 end
