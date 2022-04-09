@@ -1,5 +1,5 @@
-function [lightPout, electricPout] = dyeInCladRaytracing(dopant, N, diameter, q, lightL)
-%DYEINCLADRAYTRACING Simulate fibers using raytracing as the main tool
+function [lightPout, electricPout] = dyeInCladRaytracingMultifiber(dopant, N, diameter, q, lightL, numColumns, numRows)
+%DYEINCLADRAYTRACINGMULTIFIBER Simulate fibers using raytracing as the main tool
 %   This function simulates a fiber to obtain a resulting power output by
 %   running "photons" through the fiber using raytracing, as opposed to
 %   using rate equations.
@@ -11,12 +11,13 @@ function [lightPout, electricPout] = dyeInCladRaytracing(dopant, N, diameter, q,
 %   diameter: the fiber's diameter (m)
 %   q: the fraction of the core's diameter and the fiber's (Din/Dout)
 %   lightL: the fiber length under sunlight (m)
+%   numFibers: the number of fibers to simulate
 
 tic;
 
 Mx = 100;
-Mz = 100;
-Mn = 200;
+Mz = 50;
+Mn = 400;
 M = Mx*Mz*Mn; % Number of photons to simulate
 
 rng('shuffle');
@@ -25,6 +26,17 @@ dlambda = 5e-9;
 [minLambda, maxLambda] = getLambdaRanges(dopant, dlambda);
 ll = minLambda:dlambda:maxLambda;
 numll = length(ll);
+
+numFibers = numColumns*numRows-floor(numRows/2);
+fiberCenters = zeros(numFibers, 3);
+for iFiber = 1:numFibers
+    iCol2 = mod(iFiber-1, 2*numColumns-1);
+    iCol = mod(iCol2, numColumns);
+    iRow = 2*floor((iFiber-1)/(2*numColumns-1)) + floor(iCol2/numColumns);
+    
+    fiberCenters(iFiber, 1) = diameter*(iCol+1/2)+diameter*mod(iRow, 2)/2;
+    fiberCenters(iFiber, 2) = diameter*sqrt(3)/2*iRow;
+end
 
 [tauRad, sigmaabsFun, sigmaemiFun, tauNR] = getDyeDopantAttributes(dopant);
 
@@ -45,7 +57,7 @@ emittedKDistribution = generateDistributedLambdas(ll, emittedDistribution);
 quantumYield = tauNR/(tauRad+tauNR);
 
 % Initial values
-incomingPower = solarConstant*diameter*lightL; % W
+incomingPower = solarConstant*diameter*numColumns*lightL; % W
 Pout = zeros(1, numll); % W
 totalPhotons = 0;
 finalPhotons = 0;
@@ -98,7 +110,9 @@ function R = fresnelR(N1, N2, cos1, cos2)
 end
 
 % Get the point of intersection with an interphase
-function [ds, medium] = getPhaseIntersection(position, direction)
+function [ds, medium] = getPhaseIntersection(position, direction, iF, lastFiber)
+    position = position - fiberCenters(iF, :);
+    
     b = direction(1)*position(1, 1)+direction(2)*position(1, 2);
     c2 = position(1, 1)^2+position(1, 2)^2-diameter^2/4;
     
@@ -127,7 +141,11 @@ function [ds, medium] = getPhaseIntersection(position, direction)
         dsList = [sqrt(beta^2-gamma2)-beta -sqrt(beta^2-gamma2)-beta Inf Inf];
     end
     
-    ds = min(dsList(imag(dsList) == 0 & dsList > 1e-12));
+    if iF == lastFiber
+        ds = min(dsList(imag(dsList) == 0 & dsList > 1e-12));
+    else
+        ds = min(dsList(imag(dsList) == 0 & dsList > 0));
+    end
     
     if isempty(ds)
         ds = Inf;
@@ -160,9 +178,13 @@ function ds = getEndIntersection(position, direction, zPos)
         
         % Check if intersection is inside the fiber diameter
         newPosition = position+direction*ds;
-        if newPosition(1)^2+newPosition(2)^2 >= (diameter/2)^2
-            ds = Inf;
+        for iF = 1:numFibers
+            if (newPosition(1)-fiberCenters(iF, 1))^2+(newPosition(2)-fiberCenters(iF, 2))^2 < (diameter/2)^2
+                return;
+            end
         end
+        
+        ds = Inf;
     end
 end
 
@@ -174,12 +196,19 @@ function runPhoton(position, direction, k, photonPower)
     alphaPMMA = alfaPMMAValues(k);
     alphaDopant = N*sigmaabsValues(k);
     
+    dsPhase = zeros(1, numFibers);
+    newMedium = zeros(1, numFibers);
+    
+    lastFiber = -1;
     medium = 2;
     
     while true
-
         % Get intersection with the fiber's interphases
-        [dsPhase, newMedium] = getPhaseIntersection(position, direction);
+        for iF = 1:numFibers
+            [dsPhase(iF), newMedium(iF)] = getPhaseIntersection(position, direction, iF, lastFiber);
+        end
+        
+        lastFiber = -1;
         
         % Get random distance before ray is absorbed by PMMA
         if medium == 0 || medium == 1
@@ -251,48 +280,54 @@ function runPhoton(position, direction, k, photonPower)
                 % Change photon power (Stokes shift loss)
                 photonPower = photonPower*oldLambda/ll(k);
             end
-        elseif ds == dsPhase
-            % Ray reached interphase
+        else
+            for iF = 1:numFibers
+                if ds == dsPhase(iF)
+                    % Ray reached interphase
 
-            nIndex = getMediumParams(medium, k);
-            nIndexNew = getMediumParams(newMedium, k);
-            
-            % Get incidence angle
-            normalVector = [position(1) position(2) 0];
-            normalVector = normalVector/vecnorm(normalVector);
+                    nIndex = getMediumParams(medium, k);
+                    nIndexNew = getMediumParams(newMedium(iF), k);
 
-            cosTheta = normalVector*direction';
-            sinTheta = sqrt(1-cosTheta^2);
-            
-            % Apply Snell's law
-            newSinTheta = sinTheta*nIndex/nIndexNew;
+                    % Get incidence angle
+                    normalVector = [position(1)-fiberCenters(iF, 1) position(2)-fiberCenters(iF, 2) 0];
+                    normalVector = normalVector/vecnorm(normalVector);
 
-            reflectedDirection = direction-2*cosTheta*normalVector;
+                    cosTheta = normalVector*direction';
+                    sinTheta = sqrt(1-cosTheta^2);
 
-            if newSinTheta >= 1
-                % Total internal reflection (TIR)
-                direction = reflectedDirection;
-            else
-                % Refraction or partial reflection
-                newCosTheta = sign(cosTheta)*sqrt(1-newSinTheta^2);
+                    % Apply Snell's law
+                    newSinTheta = sinTheta*nIndex/nIndexNew;
 
-                R = fresnelR(nIndex, nIndexNew, cosTheta, newCosTheta);
+                    reflectedDirection = direction-2*cosTheta*normalVector;
 
-                if rand < R
-                    % Partial reflection
-                    direction = reflectedDirection;
-                else
-                    % Refraction
+                    if newSinTheta >= 1
+                        % Total internal reflection (TIR)
+                        direction = reflectedDirection;
+                    else
+                        % Refraction or partial reflection
+                        newCosTheta = sign(cosTheta)*sqrt(1-newSinTheta^2);
+
+                        R = fresnelR(nIndex, nIndexNew, cosTheta, newCosTheta);
+
+                        if rand < R
+                            % Partial reflection
+                            direction = reflectedDirection;
+                        else
+                            % Refraction
+
+                            % Calculate direction after refraction via Snell's law
+                            tangentVector = direction-cosTheta*normalVector;
+                            newTangentVector = tangentVector*nIndex/nIndexNew;
+                            newNormalVector = newCosTheta*normalVector;
+                            refractedDirection = newTangentVector+newNormalVector;
+
+                            direction = refractedDirection;
+                            
+                            medium = newMedium(iF);
+                        end
+                    end
                     
-                    % Calculate direction after refraction via Snell's law
-                    tangentVector = direction-cosTheta*normalVector;
-                    newTangentVector = tangentVector*nIndex/nIndexNew;
-                    newNormalVector = newCosTheta*normalVector;
-                    refractedDirection = newTangentVector+newNormalVector;
-                    
-                    direction = refractedDirection;
-                    
-                    medium = newMedium;
+                    lastFiber = iF;
                 end
             end
         end
@@ -311,7 +346,7 @@ index = 0;
 direction = [0 -1 0];
 
 for i = 1:Mx
-    posX = diameter*((i-1/2)/Mx-1/2);
+    posX = diameter*numColumns*((i-1/2)/Mx);
     
     for j = 1:Mz
         posZ = lightL*(j-1/2)/Mz;
